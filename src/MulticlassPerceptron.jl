@@ -1,24 +1,23 @@
-module Perceptron
+module MulticlassPerceptron
 
 using MetadataTools,  DocStringExtensions
 
-export PerceptronClassifier, fit!, predict
+export MulticlassPerceptronClassifier, fit!, predict
 
-
-type PerceptronClassifier{T}
+mutable struct MulticlassPerceptronClassifier{T}
     W::AbstractMatrix{T}
     b::AbstractVector{T}
     n_classes::Int
     n_features::Int
 end
 
-function Base.show{T}(io::IO, p::PerceptronClassifier{T})
+function Base.show{T}(io::IO, p::MulticlassPerceptronClassifier{T})
     n_classes  = p.n_classes
     n_features = p.n_features
-    print(io, "PerceptronClassifier{$T}(n_classes=$n_classes, n_features=$n_features)")
+    print(io, "MulticlassPerceptronClassifier{$T}(n_classes=$n_classes, n_features=$n_features)")
 end
 
-PerceptronClassifier(T::Type, n_classes::Int, n_features::Int) = PerceptronClassifier{T}(rand(T, n_features, n_classes),
+MulticlassPerceptronClassifier(T::Type, n_classes::Int, n_features::Int) = MulticlassPerceptronClassifier{T}(rand(T, n_features, n_classes),
                                                                                        zeros(T, n_classes),
                                                                                        n_classes,
                                                                                        n_features)
@@ -39,12 +38,12 @@ end
 """
 $(SIGNATURES)
 
-Predicts the class for a given input in a `PerceptronClassifier`.
+Predicts the class for a given input in a `MulticlassPerceptronClassifier`.
 The placeholder is used to avoid allocating memory for each matrix-vector multiplication.
 
 - Returns the predicted class.
 """
-function predict(h::PerceptronClassifier, x::AbstractVector, class_placeholder::AbstractVector)
+function predict(h::MulticlassPerceptronClassifier, x::AbstractVector, class_placeholder::AbstractVector)
     @fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
     return indmax(class_placeholder)
 end
@@ -56,7 +55,7 @@ Function to predict the class for a given example.
 
 - Returns the predicted class.
 """
-function predict(h::PerceptronClassifier, x::AbstractVector)
+function predict(h::MulticlassPerceptronClassifier, x::AbstractVector)
     score = h.W' * x .+ h.b
     return @fastmath indmax(score), score
 end
@@ -67,7 +66,7 @@ $(SIGNATURES)
 Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
-function predict(h::PerceptronClassifier, X::AbstractMatrix)
+function predict(h::MulticlassPerceptronClassifier, X::AbstractMatrix)
     predictions = zeros(Int32, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
@@ -80,7 +79,7 @@ end
 """
 $(SIGNATURES)
 
->    fit!(h::PerceptronClassifier,
+>    fit!(h::MulticlassPerceptronClassifier,
 >         X::Array,
 >         y::Array;
 >         n_epochs=50,
@@ -93,7 +92,7 @@ $(SIGNATURES)
 
 ##### Arguments
 
-- **`h`**, (PerceptronClassifier{T} type), Multiclass perceptron.
+- **`h`**, (MulticlassPerceptronClassifier{T} type), Multiclass perceptron.
 - **`X`**, (Array{T,2} type), data contained in the columns of X.
 - **`y`**, (Vector{T} type), class labels (as integers from 1 to n_classes).
 
@@ -108,7 +107,7 @@ $(SIGNATURES)
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 
 """
-function fit!(h::PerceptronClassifier, X::AbstractArray, y::AbstractVector, scores::Array;
+function fit!(h::MulticlassPerceptronClassifier, X::AbstractArray, y::AbstractVector, scores::Array;
               n_epochs=50, learning_rate=1., print_flag=false,
               compute_accuracy=false, seed=srand(1234), pocket=false,
               shuffle_data=false)
