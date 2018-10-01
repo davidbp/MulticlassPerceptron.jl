@@ -1,6 +1,6 @@
 module MulticlassPerceptron
 
-using MetadataTools,  DocStringExtensions
+#using MetadataTools,  DocStringExtensions
 
 export MulticlassPerceptronClassifier, fit!, predict
 
@@ -11,7 +11,7 @@ mutable struct MulticlassPerceptronClassifier{T}
     n_features::Int
 end
 
-function Base.show{T}(io::IO, p::MulticlassPerceptronClassifier{T})
+function Base.show(io::IO, p::MulticlassPerceptronClassifier{T}) where T<:Number
     n_classes  = p.n_classes
     n_features = p.n_features
     print(io, "MulticlassPerceptronClassifier{$T}(n_classes=$n_classes, n_features=$n_features)")
@@ -23,8 +23,6 @@ MulticlassPerceptronClassifier(T::Type, n_classes::Int, n_features::Int) = Multi
                                                                                        n_features)
 
 """
-$(SIGNATURES)
-
 Compute the accuracy betwwen `y` and `y_hat`.
 """
 function accuracy(y::AbstractVector, y_hat::AbstractVector)
@@ -36,8 +34,6 @@ function accuracy(y::AbstractVector, y_hat::AbstractVector)
 end
 
 """
-$(SIGNATURES)
-
 Predicts the class for a given input in a `MulticlassPerceptronClassifier`.
 The placeholder is used to avoid allocating memory for each matrix-vector multiplication.
 
@@ -49,8 +45,6 @@ function predict(h::MulticlassPerceptronClassifier, x::AbstractVector, class_pla
 end
 
 """
-$(SIGNATURES)
-
 Function to predict the class for a given example.
 
 - Returns the predicted class.
@@ -61,8 +55,6 @@ function predict(h::MulticlassPerceptronClassifier, x::AbstractVector)
 end
 
 """
-$(SIGNATURES)
-
 Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
@@ -77,8 +69,6 @@ function predict(h::MulticlassPerceptronClassifier, X::AbstractMatrix)
 end
 
 """
-$(SIGNATURES)
-
 >    fit!(h::MulticlassPerceptronClassifier,
 >         X::Array,
 >         y::Array;
