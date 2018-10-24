@@ -2,25 +2,32 @@
 
 Package for training Multiclass Perceptron models.
 
-A library for those who feel deeply vanished from the (maybe non linearly seprable) world. 
+A library for those who feel deeply vanished from the (maybe non linearly seprable) world.
 
 A library for the deepfolks who, maybe, stumble upon linearly separable problems.
 
 ### Installation
 ```julia
 Pkg.clone("https://github.com/davidbp/MulticlassPerceptron.jl")
+
+if "/Users/david.buchaca/Documents/git_stuff/MulticlassPerceptron.jl/src" ∉  LOAD_PATH
+           push!(LOAD_PATH,"/Users/david.buchaca/Documents/git_stuff/MulticlassPerceptron.jl/src")
+           print("Library added")
+end       
 ```
 
 ### Basic usage
 ```julia
 using MLDatasets
 
-train_x, train_y = MLDatasets.MNIST.traindata()
+train_x, train_y = MLDatasets.MNIST.traindata();
 test_x, test_y = MLDatasets.MNIST.testdata();
-train_y = train_y + 1
-test_y = test_y + 1
-train_x = reshape(train_x,784, 60000);
-test_x  = reshape(test_x, 784, 10000);
+train_x = Float32.(train_x);
+test_x  = Float32.(test_x);
+train_y = train_y .+ 1;
+test_y  = test_y .+ 1;
+train_x = reshape(train_x, 784, 60000);
+test_x  = reshape(test_x,  784, 10000);
 ```
 
 We can create a `PerceptronClassifer` type defining the type of the weights, the number of classes,
@@ -29,11 +36,12 @@ and the number of features.
 The function `Perceptron.fit!` is used to train the model.
 
 ```julia
+using MulticlassPerceptron
 scores = []
-n_features = size(train_x, 1)
-n_classes =  length(unique(train_y))
-perceptron = PerceptronClassifier(Float32, n_classes, n_features)
-Perceptron.fit!(perceptron, train_x, train_y, scores;  print_flag=true)
+n_features = size(train_x, 1);
+n_classes =  length(unique(train_y));
+perceptron = MulticlassPerceptronClassifier(Float32, n_classes, n_features);
+MulticlassPerceptron.fit!(perceptron, train_x[:,1:10], train_y[1:10], scores;  print_flag=false, n_epochs=10);
 ```
 
 #### Details of the `fit!` function
@@ -70,7 +78,7 @@ Perceptron.fit!(perceptron, train_x, train_y, scores;  print_flag=true)
 #### Ascension from above: THe History of the profet who saw the light from the higher dimensions
 
 The savant circle, ruler of flatland, told the triangle that it was impossible to cross the line river.
-It was simply too long, far beyond the end of the realm the river went. One day, the stubborn triangle heard a voice: "the river can be crossed from above". What the hell is above? though the triangle.  The triangle tried to explain to the other peasants what was the world from above but nobody listened. 
+It was simply too long, far beyond the end of the realm the river went. One day, the stubborn triangle heard a voice: "the river can be crossed from above". What the hell is above? though the triangle.  The triangle tried to explain to the other peasants what was the world from above but nobody listened.
 
 "This smartass thinks he can invent a word and sell us out on his dream. What on earth is `above` eh? show us"
 
@@ -78,7 +86,3 @@ The poor triangle asked the others to have faith and investigate other ways to s
 
 
 The story will continue ...
-
-
-
-
