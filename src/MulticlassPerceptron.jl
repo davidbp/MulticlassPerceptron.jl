@@ -1,8 +1,10 @@
 module MulticlassPerceptron
 
 #using MetadataTools,  DocStringExtensions
+using Random: shuffle, MersenneTwister
 
 export MulticlassPerceptronClassifier, fit!, predict
+using LinearAlgebra: mul!
 
 mutable struct MulticlassPerceptronClassifier{T}
     W::AbstractMatrix{T}
@@ -40,8 +42,9 @@ The placeholder is used to avoid allocating memory for each matrix-vector multip
 - Returns the predicted class.
 """
 function predict(h::MulticlassPerceptronClassifier, x::AbstractVector, class_placeholder::AbstractVector)
-    @fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
-    return indmax(class_placeholder)
+    #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
+    class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
+    return argmax(class_placeholder)
 end
 
 """
@@ -51,7 +54,7 @@ Function to predict the class for a given example.
 """
 function predict(h::MulticlassPerceptronClassifier, x::AbstractVector)
     score = h.W' * x .+ h.b
-    return @fastmath indmax(score), score
+    return argmax(score), score
 end
 
 """
@@ -59,7 +62,7 @@ Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
 function predict(h::MulticlassPerceptronClassifier, X::AbstractMatrix)
-    predictions = zeros(Int32, size(X, 2))
+    predictions = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
     @inbounds for m in 1:length(predictions)
@@ -76,7 +79,7 @@ end
 >         learning_rate=0.1,
 >         print_flag=false,
 >         compute_accuracy=true,
->         seed=srand(1234),
+>         seed=Random.seed!(1234),
 >         pocket=false,
 >         shuffle_data=false)
 
@@ -95,23 +98,21 @@ end
 - **`seed`**, (MersenneTwister type), seed for the permutation of the datapoints in case there the data is shuffled.
 - **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
-
 """
 function fit!(h::MulticlassPerceptronClassifier, X::AbstractArray, y::AbstractVector, scores::Array;
               n_epochs=50, learning_rate=1., print_flag=false,
-              compute_accuracy=false, seed=srand(1234), pocket=false,
+              compute_accuracy=false, seed=MersenneTwister(1234), pocket=false,
               shuffle_data=false)
 
     n_features, n_samples = size(X)
     @assert length(y) == n_samples
 
     T = eltype(X)
-    learning_rate = T(learning_rate)
-
+    learning_rate     = T(learning_rate)
     class_placeholder = zeros(T, h.n_classes)
-    y_preds = zeros(Int64, n_samples)
-    data_indices = Array(1:n_samples)
-    max_acc = zero(T)
+    y_preds           = zeros(Int64, n_samples)
+    data_indices      = Array(1:n_samples)
+    max_acc           = zero(T)
 
     if pocket
         W_hat = zeros(T, h.n_features, h.n_classes)
@@ -124,21 +125,22 @@ function fit!(h::MulticlassPerceptronClassifier, X::AbstractArray, y::AbstractVe
         if shuffle_data
             shuffle!(seed, data_indices)
         end
-
+        #println("\nepoch ",epoch,"\n")
         @inbounds for m in data_indices
-            x = view(X, :, m)
-
+            #println("sample seen ", m ,"\n")
+            x = view(X, :, m);
             y_hat = predict(h, x, class_placeholder)
-
             if y[m] != y_hat
                 n_mistakes += 1
                 ####  wij ← wij − η (yj −tj) · xi
                 h.W[:, y[m]]  .= h.W[:, y[m]]  .+ learning_rate .* x
-                h.b[y[m]]     .= h.b[y[m]]     .+ learning_rate
+                h.b[y[m]]      = h.b[y[m]]     + learning_rate
                 h.W[:, y_hat] .= h.W[:, y_hat] .- learning_rate .* x
-                h.b[y_hat]    .= h.b[y_hat]    .- learning_rate
+                h.b[y_hat]     = h.b[y_hat]    - learning_rate
             end
         end
+
+        #println("FINISHED")
 
         if compute_accuracy
              @inbounds for m in  data_indices
@@ -160,11 +162,10 @@ function fit!(h::MulticlassPerceptronClassifier, X::AbstractArray, y::AbstractVe
         end
 
         if print_flag
-            print("Epoch: $(epoch) \t Accuracy: $(round(acc,3))\r")
-            flush(STDOUT)
+            print("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))\r")
+            #flush(STDOUT)
         end
     end
-
 end
 
 
