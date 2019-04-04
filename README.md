@@ -8,12 +8,7 @@ A library for the deepfolks who, maybe, stumble upon linearly separable problems
 
 ### Installation
 ```julia
-Pkg.clone("https://github.com/davidbp/MulticlassPerceptron.jl")
-
-if "/Users/david.buchaca/Documents/git_stuff/MulticlassPerceptron.jl/src" ∉  LOAD_PATH
-           push!(LOAD_PATH,"/Users/david.buchaca/Documents/git_stuff/MulticlassPerceptron.jl/src")
-           print("Library added")
-end       
+Pkg.clone("https://github.com/davidbp/MulticlassPerceptron.jl") 
 ```
 
 ### Basic usage
