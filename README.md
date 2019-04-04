@@ -7,9 +7,17 @@ A library for those who feel deeply vanished from the (maybe non linearly separa
 A library for the deepfolks who, maybe, stumble upon linearly separable problems.
 
 ### Installation
+
+You can clone the package
 ```julia
+using Pkg
 Pkg.clone("https://github.com/davidbp/MulticlassPerceptron.jl") 
 ```
+Or you can add the package. Remember to be in pkg mode inside Julia (type `]`).
+```
+(v1.1) pkg> add "https://github.com/davidbp/MulticlassPerceptron.jl"
+```
+
 
 ### Basic usage
 ```julia
