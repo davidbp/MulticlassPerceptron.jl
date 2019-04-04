@@ -2,7 +2,7 @@
 
 Package for training Multiclass Perceptron models.
 
-A library for those who feel deeply vanished from the (maybe non linearly seprable) world.
+A library for those who feel deeply vanished from the (maybe non linearly separable) world.
 
 A library for the deepfolks who, maybe, stumble upon linearly separable problems.
 
