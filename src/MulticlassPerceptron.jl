@@ -1,31 +1,151 @@
 module MulticlassPerceptron
 
-#using MetadataTools,  DocStringExtensions
+
+# using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
 
-export MulticlassPerceptronClassifier, fit!, predict
+# export MulticlassPerceptronClassifier, fit!, predict
 using LinearAlgebra: mul!
+#using SparseArrays
+import MLJBase
+using MLJ
+using CategoricalArrays
+using SparseArrays
 
-mutable struct MulticlassPerceptronClassifier{T}
+export MulticlassPerceptronClassifierParameters, fit!, predict, fit
+
+
+## Defining MulticlassPerceptronClassifier
+
+mutable struct MulticlassPerceptronClassifier <: MLJBase.Deterministic
+    n_epochs::Int
+    n_epoch_patience::Int
+    f_average_weights::Bool
+    f_shuffle_data::Bool
+    element_type::DataType
+end
+
+
+# keyword constructor
+function MulticlassPerceptronClassifier( ;
+                                        n_epochs=100,
+                                        n_epoch_patience=5,
+                                        f_average_weights=true,
+                                        f_shuffle_data=false,
+                                        element_type=Float32)
+
+    model = MulticlassPerceptronClassifier(n_epochs,
+                                           n_epoch_patience,
+                                           f_average_weights,
+                                           f_shuffle_data,
+                                           element_type)
+
+    message = MLJBase.clean!(model)
+    isempty(message) || @warn message
+    return model
+end
+
+function MLJ.clean!(model::MulticlassPerceptronClassifier)
+    warning = ""
+    if model.n_epochs < 1
+        warning *= "Need n_epochs ≥ 1. Resetting n_epochs=100 "
+        model.n_epochs = 50
+    end
+
+    if model.n_epoch_patience <1
+        warning *= "Need epoch_patience ≥ 1. Resetting epoch_patience=5 "
+        model.epoch_patience = 5
+    end
+
+    return warning
+end
+
+
+## Defining MulticlassPerceptronClassifierParameters
+
+mutable struct MulticlassPerceptronClassifierParameters{T}
     W::AbstractMatrix{T}
     b::AbstractVector{T}
     n_classes::Int
     n_features::Int
+    is_sparse::Bool
 end
 
-function Base.show(io::IO, p::MulticlassPerceptronClassifier{T}) where T<:Number
-    n_classes  = p.n_classes
-    n_features = p.n_features
-    print(io, "MulticlassPerceptronClassifier{$T}(n_classes=$n_classes, n_features=$n_features)")
-end
 
-MulticlassPerceptronClassifier(T::Type, n_classes::Int, n_features::Int) = MulticlassPerceptronClassifier{T}(rand(T, n_features, n_classes),
+function MulticlassPerceptronClassifierParameters(T::Type, n_classes::Int, n_features::Int, is_sparse::Bool)
+
+    if is_sparse==false
+        return MulticlassPerceptronClassifierParameters{T}(rand(T, n_features, n_classes),
                                                                                        zeros(T, n_classes),
                                                                                        n_classes,
-                                                                                       n_features)
+                                                                                       n_features,
+                                                                                       is_sparse)
+    else
+        return  MulticlassPerceptronClassifierParameters{T}(sparse(rand(T, n_features, n_classes)),
+                                                            spzeros(T, n_classes),
+                                                            n_classes,
+                                                            n_features,
+                                                            is_sparse)
+    end
+end
+
+
+function MLJBase.fit(model::MulticlassPerceptronClassifier,
+                     verbosity::Int,
+                     X,
+                     y)
+
+    @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
+
+    #Xmatrix = MLJBase.matrix(X)
+    n_classes    = length(unique(y))
+    classes_seen = unique(y)
+    n_features   = size(X,1)  # this assumes data comes in cols
+
+    decode  = MLJBase.decoder(y[1]) # for the predict method
+    y = Int.(MLJ.int(y))                # Encoding categorical target as array of integers
+
+    is_sparse = issparse(X)
+    perceptron = MulticlassPerceptronClassifierParameters(model.element_type, n_classes,
+                                                          n_features, is_sparse);
+
+    ### Fitting code starts
+    fit!(perceptron, X, y;
+         verbosity=verbosity,
+         n_epochs=model.n_epochs,
+         f_average_weights=model.f_average_weights,
+         f_shuffle_data=model.f_shuffle_data
+        );
+
+    ### Fitting code ends
+    cache = nothing
+    fitresult = (perceptron, decode)
+    report = NamedTuple{}()
+
+    #> return package-specific statistics (eg, feature rankings,
+    #> internal estimates of generalization error) in `report`, which
+    #> should be a named tuple with the same type every call (can have
+    #> empty values)
+    return fitresult, cache, report
+end
+
+## Auxiliar methods
 
 """
-Compute the accuracy betwwen `y` and `y_hat`.
+Predicts the class for a given input in a `MulticlassPerceptronClassifier`.
+The placeholder is used to avoid allocating memory for each matrix-vector multiplication.
+
+- Returns the predicted class.
+"""
+function predict_with_placeholder(h::MulticlassPerceptronClassifierParameters, x::AbstractVector, class_placeholder::AbstractVector)
+    #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
+    class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
+    return argmax(class_placeholder)
+end
+
+
+"""
+Compute the accuracy between `y` and `y_hat`.
 """
 function accuracy(y::AbstractVector, y_hat::AbstractVector)
     acc = 0.
@@ -35,41 +155,41 @@ function accuracy(y::AbstractVector, y_hat::AbstractVector)
     return acc/length(y_hat)
 end
 
-"""
-Predicts the class for a given input in a `MulticlassPerceptronClassifier`.
-The placeholder is used to avoid allocating memory for each matrix-vector multiplication.
-
-- Returns the predicted class.
-"""
-function predict(h::MulticlassPerceptronClassifier, x::AbstractVector, class_placeholder::AbstractVector)
-    #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
+function predict(h::MulticlassPerceptronClassifierParameters, x::AbstractVector, class_placeholder::AbstractVector)
     class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
     return argmax(class_placeholder)
-end
-
-"""
-Function to predict the class for a given example.
-
-- Returns the predicted class.
-"""
-function predict(h::MulticlassPerceptronClassifier, x::AbstractVector)
-    score = h.W' * x .+ h.b
-    return argmax(score), score
 end
 
 """
 Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
-function predict(h::MulticlassPerceptronClassifier, X::AbstractMatrix)
+function predict(h::MulticlassPerceptronClassifierParameters, X::AbstractMatrix)
     predictions = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
     @inbounds for m in 1:length(predictions)
         predictions[m] = predict(h, view(X,:,m), class_placeholder)
     end
+
     return predictions
 end
+
+function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
+    xnew = MLJBase.matrix(Xnew)
+    result, decode = fitresult
+    prediction = predict(result, xnew)
+    return decode(prediction)
+end
+
+
+function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierParameters, MLJBase.CategoricalDecoder}, Xnew)
+    xnew = MLJBase.matrix(Xnew)
+    result, decode = fitresult
+    prediction = predict(result, xnew)
+    return decode(prediction)
+end
+
 
 """
 >    fit!(h::MulticlassPerceptronClassifier,
@@ -99,74 +219,79 @@ end
 - **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 """
-function fit!(h::MulticlassPerceptronClassifier, X::AbstractArray, y::AbstractVector, scores::Array;
-              n_epochs=50, learning_rate=1., print_flag=false,
-              compute_accuracy=false, seed=MersenneTwister(1234), pocket=false,
-              shuffle_data=false)
+function fit!(h::MulticlassPerceptronClassifierParameters, X::AbstractArray, y::AbstractVector;
+              verbosity=0,
+              n_epochs=50,
+              learning_rate=1.,
+              f_average_weights=false,
+              compute_accuracy=true,
+              seed=MersenneTwister(1234),
+              f_shuffle_data=false)
 
     n_features, n_samples = size(X)
     @assert length(y) == n_samples
-
+    scores = []
     T = eltype(X)
+    counter           = 0
     learning_rate     = T(learning_rate)
     class_placeholder = zeros(T, h.n_classes)
-    y_preds           = zeros(Int64, n_samples)
+    y_preds           = zeros(Int16, n_samples)
+
     data_indices      = Array(1:n_samples)
     max_acc           = zero(T)
 
-    if pocket
-        W_hat = zeros(T, h.n_features, h.n_classes)
-        b_hat = zeros(T, h.n_classes)
+    if f_average_weights
+        W_average =  zeros(T, h.n_features, h.n_classes)
+        b_average =  zeros(T, h.n_classes)
     end
 
     @fastmath for epoch in 1:n_epochs
 
         n_mistakes = 0
-        if shuffle_data
+        if f_shuffle_data
             shuffle!(seed, data_indices)
         end
-        #println("\nepoch ",epoch,"\n")
+
         @inbounds for m in data_indices
-            #println("sample seen ", m ,"\n")
-            x = view(X, :, m);
-            y_hat = predict(h, x, class_placeholder)
+            x     = view(X, :, m);
+            y_hat = predict_with_placeholder(h, x, class_placeholder)
+
             if y[m] != y_hat
                 n_mistakes += 1
                 ####  wij ← wij − η (yj −tj) · xi
                 h.W[:, y[m]]  .= h.W[:, y[m]]  .+ learning_rate .* x
-                h.b[y[m]]      = h.b[y[m]]     + learning_rate
+                h.b[y[m]]      = h.b[y[m]]      + learning_rate
                 h.W[:, y_hat] .= h.W[:, y_hat] .- learning_rate .* x
-                h.b[y_hat]     = h.b[y_hat]    - learning_rate
+                h.b[y_hat]     = h.b[y_hat]     - learning_rate
+
+                if f_average_weights == true
+                    counter_learning_rate = counter * learning_rate
+                    W_average[:, y[m]]   .= W_average[:, y[m]]  .+ counter_learning_rate .* x
+                    b_average[y[m]]       = b_average[y[m]]      + counter_learning_rate
+                    W_average[:, y_hat]  .= W_average[:, y_hat] .- counter_learning_rate .* x
+                    b_average[y_hat]      = b_average[y_hat]     - counter_learning_rate
+                end
             end
+            counter +=1
         end
 
-        #println("FINISHED")
+        acc = (n_samples - n_mistakes)/n_samples
+        # push!(scores, acc) maybe it would be nice to return an array with monitoring metrics to
+        # allow users to decide if the model has converged
 
-        if compute_accuracy
-             @inbounds for m in  data_indices
-                 y_preds[m] = predict(h, view(X, :, m), class_placeholder)
-            end
-            acc = accuracy(y, y_preds)
-            push!(scores, acc)
-        else
-            acc = (n_samples - n_mistakes)/n_samples
-            push!(scores, acc)
-        end
-
-        if pocket
-            if acc > max_acc
-                max_acc = acc
-                copy!(W_hat, h.W)
-                copy!(b_hat, h.b)
-            end
-        end
-
-        if print_flag
-            print("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))\r")
-            #flush(STDOUT)
+        if verbosity ==1
+            print("\r\u1b[K")
+            print("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))")
+        elseif verbosity ==2
+            println("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))")
         end
     end
-end
 
+    if f_average_weights == true
+        h.W .= h.W  .- W_average./counter
+        h.b .= h.b  .- b_average./counter
+    end
+
+end
 
 end # module

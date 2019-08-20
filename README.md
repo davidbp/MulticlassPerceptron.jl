@@ -2,90 +2,76 @@
 
 Package for training Multiclass Perceptron models.
 
-A library for those who feel deeply vanished from the (maybe non linearly separable) world.
-
-A library for the deepfolks who, maybe, stumble upon linearly separable problems.
-
 ### Installation
 
 You can clone the package
+
 ```julia
 using Pkg
 Pkg.clone("https://github.com/davidbp/MulticlassPerceptron.jl") 
 ```
-Or you can add the package. Remember to be in pkg mode inside Julia (type `]`).
+
+Or use `add` to install the package. Remember to be in `pkg>` mode inside Julia (type `]`).
+
 ```
 (v1.1) pkg> add "https://github.com/davidbp/MulticlassPerceptron.jl"
 ```
 
+### Test the code
 
-### Basic usage
+Executing `basic_usage_train.jl` you should get
+
+```
+Start Learning
+
+Epoch: 50 	 Accuracy: 0.898
+Learning Finished
+
+Results:
+Train accuracy:0.9359333333333333
+Test accuracy:0.927
+```
+
+If this works then you can already use `MulticlassPerceptron` models!
+
+
+
+### Basic usage 
+
+This code snippet loads the MNIST Dataset and saves the classes as a `CategoricalArray`
+
 ```julia
 using MLDatasets
+using CategoricalArrays
 
+## Prepare data
 train_x, train_y = MLDatasets.MNIST.traindata();
-test_x, test_y = MLDatasets.MNIST.testdata();
+test_x, test_y   = MLDatasets.MNIST.testdata();
 train_x = Float32.(train_x);
 test_x  = Float32.(test_x);
 train_y = train_y .+ 1;
-test_y  = test_y .+ 1;
+test_y  = test_y  .+ 1;
 train_x = reshape(train_x, 784, 60000);
 test_x  = reshape(test_x,  784, 10000);
+
+## Encode targets as CategoricalArray objects
+train_y = CategoricalArray(train_y)
+test_y  = CategoricalArray(test_y)
+
 ```
 
-We can create a `PerceptronClassifer` type defining the type of the weights, the number of classes,
-and the number of features.
-
-The function `Perceptron.fit!` is used to train the model.
+We can create a `MulticlassPerceptronClassifer` as follows :
 
 ```julia
 using MulticlassPerceptron
-scores = []
 n_features = size(train_x, 1);
-n_classes =  length(unique(train_y));
-perceptron = MulticlassPerceptronClassifier(Float32, n_classes, n_features);
-MulticlassPerceptron.fit!(perceptron, train_x[:,1:10], train_y[1:10], scores;  print_flag=false, n_epochs=10);
+n_classes  = length(unique(train_y));
+perceptron =  MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 ```
 
-#### Details of the `fit!` function
+The function `fit` is used to train the model. The result containing the trained model is kept inside fitresult.
 
->    fit!(h::PerceptronClassifer,
->         X::Array,
->         y::Array;
->         n_epochs=50,
->         learning_rate=0.1,
->         print_flag=false,
->         compute_accuracy=true,
->         seed=srand(1234),
->         pocket=false,
->         shuffle_data=false)
+```
+fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) 
+```
 
-##### Arguments
-
-- **`h`**, (PerceptronClassifer{T} type), Multiclass perceptron.
-- **`X`**, (Array{T,2} type), data contained in the columns of X.
-- **`y`**, (Vector{T} type), class labels (as integers from 1 to n_classes).
-
-##### Keyword arguments
-
-- **`n_epochs`**, (Integer type), number of passes (epochs) through the data.
-- **`learning_rate`**, (Float type), learning rate (The standard perceptron is with learning_rate=1.)
-- **`compute_accuracy`**, (Bool type), if `true` the accuracy is computed at the end of every epoch.
-- **`print_flag`**, (Bool type), if `true` the accuracy is printed at the end of every epoch.
-- **`seed`**, (MersenneTwister type), seed for the permutation of the datapoints in case there the data is shuffled.
-- **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
-- **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
-
-
-
-#### Ascension from above: THe History of the profet who saw the light from the higher dimensions
-
-The savant circle, ruler of flatland, told the triangle that it was impossible to cross the line river.
-It was simply too long, far beyond the end of the realm the river went. One day, the stubborn triangle heard a voice: "the river can be crossed from above". What the hell is above? though the triangle.  The triangle tried to explain to the other peasants what was the world from above but nobody listened.
-
-"This smartass thinks he can invent a word and sell us out on his dream. What on earth is `above` eh? show us"
-
-The poor triangle asked the others to have faith and investigate other ways to solve the problems they faced but nobody was there. Everybody was too deeply focused on other stuff.
-
-
-The story will continue ...
