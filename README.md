@@ -44,19 +44,20 @@ This code snippet loads the MNIST Dataset and saves the classes as a `Categorica
 using MLDatasets
 using CategoricalArrays
 
+## Load data
+train_imgs = MNIST.images(:train)   # size(train_imgs) -> (60000,)
+test_imgs  = MNIST.images(:test)    # size(test_imgs) -> (10000,)
+
 ## Prepare data
-train_x, train_y = MLDatasets.MNIST.traindata();
-test_x, test_y   = MLDatasets.MNIST.testdata();
-train_x = Float32.(train_x);
-test_x  = Float32.(test_x);
-train_y = train_y .+ 1;
-test_y  = test_y  .+ 1;
-train_x = reshape(train_x, 784, 60000);
-test_x  = reshape(test_x,  784, 10000);
+train_x    = Float32.(hcat(reshape.(train_imgs, :)...)) # size(train_x) -> (784, 60000)
+test_x     = Float32.(hcat(reshape.(test_imgs, :)...)) # size(test_x)   -> (784, 60000)
+train_y    = MNIST.labels(:train) .+ 1;
+test_y     = MNIST.labels(:test)  .+ 1;
 
 ## Encode targets as CategoricalArray objects
 train_y = CategoricalArray(train_y)
 test_y  = CategoricalArray(test_y)
+
 
 ```
 

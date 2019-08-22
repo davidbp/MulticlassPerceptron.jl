@@ -1,33 +1,31 @@
 
-using MLDatasets, Statistics
 #using MulticlassPerceptron
-using CategoricalArrays
-using MLJ
-using MLJBase
+using Statistics
+using MLJ, MLJBase, CategoricalArrays
+
+# We use flux only to get the MNIST
+using Flux, Flux.Data.MNIST
 
 push!(LOAD_PATH, "./src/")
 using MulticlassPerceptron
 
+train_imgs = MNIST.images(:train)   # size(train_imgs) -> (60000,)
+test_imgs  = MNIST.images(:test)    # size(test_imgs) -> (10000,)
+train_x    = Float32.(hcat(reshape.(train_imgs, :)...)) # size(train_x) -> (784, 60000)
+test_x     = Float32.(hcat(reshape.(test_imgs, :)...)) # size(test_x)   -> (784, 60000)
+
 ## Prepare data
-train_x, train_y = MLDatasets.MNIST.traindata();
-test_x, test_y   = MLDatasets.MNIST.testdata();
-train_x = Float32.(train_x);
-test_x  = Float32.(test_x);
-train_y = train_y .+ 1;
-test_y  = test_y  .+ 1;
-train_x = reshape(train_x, 784, 60000);
-test_x  = reshape(test_x,  784, 10000);
+train_y = MNIST.labels(:train) .+ 1;
+test_y  = MNIST.labels(:test)  .+ 1;
 
 ## Encode targets as CategoricalArray objects
 train_y = CategoricalArray(train_y)
 test_y  = CategoricalArray(test_y)
 
 ## Define model and train it
-scores = []
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
 perceptron =  MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
-
 
 ## Train the model
 println("\nStart Learning\n")
