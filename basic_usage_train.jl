@@ -13,6 +13,7 @@ train_imgs = MNIST.images(:train)   # size(train_imgs) -> (60000,)
 test_imgs  = MNIST.images(:test)    # size(test_imgs) -> (10000,)
 train_x    = Float32.(hcat(reshape.(train_imgs, :)...)) # size(train_x) -> (784, 60000)
 test_x     = Float32.(hcat(reshape.(test_imgs, :)...)) # size(test_x)   -> (784, 60000)
+println("\nMNIST Dataset Example")
 
 ## Prepare data
 train_y = MNIST.labels(:train) .+ 1;

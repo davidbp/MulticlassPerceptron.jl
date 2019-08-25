@@ -3,16 +3,25 @@ module MulticlassPerceptron
 
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
+using DataFrames
 
 # export MulticlassPerceptronClassifier, fit!, predict
 using LinearAlgebra: mul!
 #using SparseArrays
+
+# Add explicit case for table data not to use sparse format
+import SparseArrays.issparse
+issparse(X::DataFrame) = false
+
 import MLJBase
 using MLJ
 using CategoricalArrays
 using SparseArrays
 
 export MulticlassPerceptronClassifierParameters, fit!, predict, fit
+
+num_features_and_observations(X::DataFrame)     = (size(X,2), size(X,1))
+num_features_and_observations(X::AbstractArray) = (size(X,1), size(X,2))
 
 
 ## Defining MulticlassPerceptronClassifier
@@ -97,16 +106,25 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
 
     @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
 
-    #Xmatrix = MLJBase.matrix(X)
+    X = MLJBase.matrix(X)
     n_classes    = length(unique(y))
     classes_seen = unique(y)
-    n_features   = size(X,1)  # this assumes data comes in cols
+    n_features, _  = num_features_and_observations(X)
 
+    # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
+    if X isa AbstractDataFrame
+        X  = MLJBase.matrix(X)
+        X  = copy(X')
+    end
+    if X isa AbstractArray
+        X  = MLJBase.matrix(X)
+    end
+    
     decode  = MLJBase.decoder(y[1]) # for the predict method
     y = Int.(MLJ.int(y))                # Encoding categorical target as array of integers
 
     is_sparse = issparse(X)
-    perceptron = MulticlassPerceptronClassifierParameters(model.element_type, n_classes,
+    perceptron = MulticlassPerceptronClassifierParameters( model.element_type, n_classes,
                                                           n_features, is_sparse);
 
     ### Fitting code starts
@@ -228,16 +246,19 @@ function fit!(h::MulticlassPerceptronClassifierParameters, X::AbstractArray, y::
               seed=MersenneTwister(1234),
               f_shuffle_data=false)
 
-    n_features, n_samples = size(X)
-    @assert length(y) == n_samples
+    ## n_features, n_observations = size(X)
+    n_features, n_observations = num_features_and_observations(X)
+    
+    @assert n_observations == length(y) "n_observations = $n_observations but length(y)=$(length(y))"
+
     scores = []
     T = eltype(X)
     counter           = 0
     learning_rate     = T(learning_rate)
     class_placeholder = zeros(T, h.n_classes)
-    y_preds           = zeros(Int16, n_samples)
+    y_preds           = zeros(Int16, n_observations)
 
-    data_indices      = Array(1:n_samples)
+    data_indices      = Array(1:n_observations)
     max_acc           = zero(T)
 
     if f_average_weights
@@ -275,7 +296,7 @@ function fit!(h::MulticlassPerceptronClassifierParameters, X::AbstractArray, y::
             counter +=1
         end
 
-        acc = (n_samples - n_mistakes)/n_samples
+        acc = (n_observations - n_mistakes)/n_observations
         # push!(scores, acc) maybe it would be nice to return an array with monitoring metrics to
         # allow users to decide if the model has converged
 
