@@ -41,6 +41,10 @@ If this works then you can already use `MulticlassPerceptron` models!
 This code snippet loads the MNIST Dataset and saves the classes as a `CategoricalArray`
 
 ```julia
+
+push!(LOAD_PATH, "./src/")
+using MulticlassPerceptron
+
 using MLDatasets
 using CategoricalArrays
 
