@@ -18,13 +18,14 @@ using MLJ
 using CategoricalArrays
 using SparseArrays
 
-export MulticlassPerceptronClassifierParameters, fit!, predict, fit
+export MulticlassPerceptronClassifierCore, fit!, predict, fit
 
 num_features_and_observations(X::DataFrame)     = (size(X,2), size(X,1))
 num_features_and_observations(X::AbstractArray) = (size(X,1), size(X,2))
 
-
+############################################################################
 ## Defining MulticlassPerceptronClassifier
+############################################################################
 
 mutable struct MulticlassPerceptronClassifier <: MLJBase.Deterministic
     n_epochs::Int
@@ -70,33 +71,13 @@ function MLJ.clean!(model::MulticlassPerceptronClassifier)
 end
 
 
-## Defining MulticlassPerceptronClassifierParameters
-
-mutable struct MulticlassPerceptronClassifierParameters{T}
-    W::AbstractMatrix{T}
-    b::AbstractVector{T}
-    n_classes::Int
-    n_features::Int
-    is_sparse::Bool
+function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
+    xnew = MLJBase.matrix(Xnew)
+    result, decode = fitresult
+    prediction = predict(result, xnew)
+    return decode(prediction)
 end
 
-
-function MulticlassPerceptronClassifierParameters(T::Type, n_classes::Int, n_features::Int, is_sparse::Bool)
-
-    if is_sparse==false
-        return MulticlassPerceptronClassifierParameters{T}(rand(T, n_features, n_classes),
-                                                                                       zeros(T, n_classes),
-                                                                                       n_classes,
-                                                                                       n_features,
-                                                                                       is_sparse)
-    else
-        return  MulticlassPerceptronClassifierParameters{T}(sparse(rand(T, n_features, n_classes)),
-                                                            spzeros(T, n_classes),
-                                                            n_classes,
-                                                            n_features,
-                                                            is_sparse)
-    end
-end
 
 
 function MLJBase.fit(model::MulticlassPerceptronClassifier,
@@ -107,8 +88,8 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
 
     X = MLJBase.matrix(X)
-    n_classes    = length(unique(y))
-    classes_seen = unique(y)
+    n_classes      = length(unique(y))
+    classes_seen   = unique(y)
     n_features, _  = num_features_and_observations(X)
 
     # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
@@ -124,7 +105,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     y = Int.(MLJ.int(y))                # Encoding categorical target as array of integers
 
     is_sparse = issparse(X)
-    perceptron = MulticlassPerceptronClassifierParameters( model.element_type, n_classes,
+    perceptron = MulticlassPerceptronClassifierCore( model.element_type, n_classes,
                                                           n_features, is_sparse);
 
     ### Fitting code starts
@@ -147,6 +128,44 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     return fitresult, cache, report
 end
 
+
+
+############################################################################
+## Defining MulticlassPerceptronClassifierCore
+############################################################################
+
+mutable struct MulticlassPerceptronClassifierCore{T}
+    W::AbstractMatrix{T}
+    b::AbstractVector{T}
+    n_classes::Int
+    n_features::Int
+    is_sparse::Bool
+end
+
+
+"""
+Function to build an empty **`MulticlassPerceptronClassifierCore`**.
+
+The option **`is_parse`**  stores the weights of the model as sparse if `isparse=True`, as standard Array otherwise.
+
+"""
+function MulticlassPerceptronClassifierCore(T::Type, n_classes::Int, n_features::Int, is_sparse::Bool)
+
+    if is_sparse==false
+        return MulticlassPerceptronClassifierCore{T}(rand(T, n_features, n_classes),
+                                                                                       zeros(T, n_classes),
+                                                                                       n_classes,
+                                                                                       n_features,
+                                                                                       is_sparse)
+    else
+        return  MulticlassPerceptronClassifierCore{T}(sparse(rand(T, n_features, n_classes)),
+                                                            spzeros(T, n_classes),
+                                                            n_classes,
+                                                            n_features,
+                                                            is_sparse)
+    end
+end
+
 ## Auxiliar methods
 
 """
@@ -155,7 +174,7 @@ The placeholder is used to avoid allocating memory for each matrix-vector multip
 
 - Returns the predicted class.
 """
-function predict_with_placeholder(h::MulticlassPerceptronClassifierParameters, x::AbstractVector, class_placeholder::AbstractVector)
+function predict_with_placeholder(h::MulticlassPerceptronClassifierCore, x::AbstractVector, class_placeholder::AbstractVector)
     #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
     class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
     return argmax(class_placeholder)
@@ -163,7 +182,7 @@ end
 
 
 """
-Compute the accuracy between `y` and `y_hat`.
+Function to compute the accuracy between `y` and `y_hat`.
 """
 function accuracy(y::AbstractVector, y_hat::AbstractVector)
     acc = 0.
@@ -173,7 +192,7 @@ function accuracy(y::AbstractVector, y_hat::AbstractVector)
     return acc/length(y_hat)
 end
 
-function predict(h::MulticlassPerceptronClassifierParameters, x::AbstractVector, class_placeholder::AbstractVector)
+function predict(h::MulticlassPerceptronClassifierCore, x::AbstractVector, class_placeholder::AbstractVector)
     class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
     return argmax(class_placeholder)
 end
@@ -182,7 +201,7 @@ end
 Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
-function predict(h::MulticlassPerceptronClassifierParameters, X::AbstractMatrix)
+function predict(h::MulticlassPerceptronClassifierCore, X::AbstractMatrix)
     predictions = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
@@ -193,15 +212,7 @@ function predict(h::MulticlassPerceptronClassifierParameters, X::AbstractMatrix)
     return predictions
 end
 
-function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
-    xnew = MLJBase.matrix(Xnew)
-    result, decode = fitresult
-    prediction = predict(result, xnew)
-    return decode(prediction)
-end
-
-
-function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierParameters, MLJBase.CategoricalDecoder}, Xnew)
+function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierCore, MLJBase.CategoricalDecoder}, Xnew)
     xnew = MLJBase.matrix(Xnew)
     result, decode = fitresult
     prediction = predict(result, xnew)
@@ -237,7 +248,7 @@ end
 - **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 """
-function fit!(h::MulticlassPerceptronClassifierParameters, X::AbstractArray, y::AbstractVector;
+function fit!(h::MulticlassPerceptronClassifierCore, X::AbstractArray, y::AbstractVector;
               verbosity=0,
               n_epochs=50,
               learning_rate=1.,
