@@ -44,7 +44,9 @@ n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
 ## Define a Machine
-#train_x = DataFrame(train_x)
+train_x = MLJBase.table(train_x) #### gets 
+#train_x = DataFrame(train_x)    #### uncomment: takes forever (does not end)
+println("typeof(train_x)=$(typeof(train_x))")
 perceptron_machine = machine(perceptron, train_x, train_y)
 
 ## Train the model
