@@ -22,7 +22,7 @@ y = CategoricalArray(y)
 ## Define model and train it
 n_features = size(X, 2);
 n_classes  = length(unique(y));
-perceptron =  MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
+perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
 ## Define a Machine
 perceptron_machine = machine(perceptron, X, y)

@@ -1,4 +1,3 @@
-#### not working ERROR: LoadError: ArgumentError: Container should be a table or sparse table. 
 #using MulticlassPerceptron
 using Statistics
 using MLJ, MLJBase, CategoricalArrays, DataFrames
@@ -30,7 +29,7 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
     test_y  = CategoricalArray(test_y)
 
     if verbose
-    	time_taken = round(time()-time_init; digits=3)
+        time_taken = round(time()-time_init; digits=3)
         println("\nMNIST Dataset Loaded, it took $time_taken seconds")
     end
     return train_x, train_y, test_x, test_y
@@ -41,7 +40,7 @@ train_x, train_y, test_x, test_y = load_MNIST( ;array_eltype=Float32, verbose=tr
 ## Define model and train it
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
-perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=2; f_average_weights=true)
+perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
 ## Define a Machine
 train_x = MLJBase.table(train_x)

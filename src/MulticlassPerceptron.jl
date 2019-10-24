@@ -72,7 +72,14 @@ end
 
 
 function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
-    xnew = MLJBase.matrix(Xnew)
+    # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
+    if Xnew isa AbstractDataFrame
+        xnew  = MLJBase.matrix(Xnew)
+        xnew  = copy(Xnew')           # In this case I transpose because I assume a user passed examples as rows
+    else
+        xnew  = MLJBase.matrix(Xnew)
+    end
+
     result, decode = fitresult
     prediction = predict(result, xnew)
     return decode(prediction)
@@ -213,7 +220,16 @@ function predict(h::MulticlassPerceptronClassifierCore, X::AbstractMatrix)
 end
 
 function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierCore, MLJBase.CategoricalDecoder}, Xnew)
-    xnew = MLJBase.matrix(Xnew)
+
+    # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
+    if Xnew isa AbstractDataFrame
+        Xnew  = MLJBase.matrix(Xnew)
+        xnew  = copy(Xnew')           # In this case I transpose because I assume a user passed examples as rows
+    else 
+        xnew  = MLJBase.matrix(Xnew)
+    end
+
+    #xnew = MLJBase.matrix(Xnew)
     result, decode = fitresult
     prediction = predict(result, xnew)
     return decode(prediction)
