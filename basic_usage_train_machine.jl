@@ -41,11 +41,10 @@ train_x, train_y, test_x, test_y = load_MNIST( ;array_eltype=Float32, verbose=tr
 ## Define model and train it
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
-perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
+perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=2; f_average_weights=true)
 
 ## Define a Machine
-train_x = MLJBase.table(train_x) #### gets 
-#train_x = DataFrame(train_x)    #### uncomment: takes forever (does not end)
+train_x = MLJBase.table(train_x)
 println("typeof(train_x)=$(typeof(train_x))")
 perceptron_machine = machine(perceptron, train_x, train_y)
 
@@ -54,7 +53,7 @@ println("\nStart Learning\n")
 time_init = time()
 #fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) # If train_y is a CategoricalArray
 fit!(perceptron_machine)
-time_taken = round(time()-time_init; digits=3)
+time_taken = round(time()-time_init; digits=3)   #### execution gets stuck here, no error appears
 println("\nLearning took $time_taken seconds\n")
 
 ## Make predictions

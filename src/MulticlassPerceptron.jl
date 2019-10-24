@@ -87,7 +87,6 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
 
     @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
 
-    X              = MLJBase.matrix(X)
     n_classes      = length(unique(y))
     classes_seen   = unique(y)
     n_features, _  = num_features_and_observations(X)
@@ -95,18 +94,20 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
     if X isa AbstractDataFrame
         X  = MLJBase.matrix(X)
-        X  = copy(X')
-    elseif X isa AbstractArray
-        X  = MLJBase.matrix(X)
+        X  = copy(X')           # In this case I transpose because I assume a user passed examples as rows
+    else X isa AbstractArray
+        X  = MLJBase.matrix(X)  # (TODO: rethink this, MLJ will assume allways examples as rows) 
+                                # In this case I assume examples are the columns of X becuase the fit! with MulticlassPerceptronClassifierCore
+                                # precisely iterates over examples as columns
     end
-    
+
     decode  = MLJBase.decoder(y[1]) # for the predict method
-    y = Int.(MLJ.int(y))                # Encoding categorical target as array of integers
+    y = Int.(MLJ.int(y))            # Encoding categorical target as array of integers
 
     is_sparse = issparse(X)
     perceptron = MulticlassPerceptronClassifierCore( model.element_type, n_classes,
                                                           n_features, is_sparse);
-
+    println("training")
     ### Fitting code starts
     fit!(perceptron, X, y;
          verbosity=verbosity,
