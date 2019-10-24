@@ -18,7 +18,7 @@ using MLJ
 using CategoricalArrays
 using SparseArrays
 
-export MulticlassPerceptronClassifierCore, fit!, predict, fit
+export MulticlassPerceptronClassifierCore, predict, fit
 
 num_features_and_observations(X::DataFrame)     = (size(X,2), size(X,1))
 num_features_and_observations(X::AbstractArray) = (size(X,1), size(X,2))
@@ -87,7 +87,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
 
     @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
 
-    X = MLJBase.matrix(X)
+    X              = MLJBase.matrix(X)
     n_classes      = length(unique(y))
     classes_seen   = unique(y)
     n_features, _  = num_features_and_observations(X)
@@ -96,8 +96,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     if X isa AbstractDataFrame
         X  = MLJBase.matrix(X)
         X  = copy(X')
-    end
-    if X isa AbstractArray
+    elseif X isa AbstractArray
         X  = MLJBase.matrix(X)
     end
     
@@ -267,7 +266,7 @@ function fit!(h::MulticlassPerceptronClassifierCore, X::AbstractArray, y::Abstra
     counter           = 0
     learning_rate     = T(learning_rate)
     class_placeholder = zeros(T, h.n_classes)
-    y_preds           = zeros(Int16, n_observations)
+    y_preds           = zeros(Int32, n_observations)
 
     data_indices      = Array(1:n_observations)
     max_acc           = zero(T)
@@ -306,7 +305,7 @@ function fit!(h::MulticlassPerceptronClassifierCore, X::AbstractArray, y::Abstra
             end
             counter +=1
         end
-
+            
         acc = (n_observations - n_mistakes)/n_observations
         # push!(scores, acc) maybe it would be nice to return an array with monitoring metrics to
         # allow users to decide if the model has converged

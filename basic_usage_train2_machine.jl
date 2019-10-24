@@ -32,14 +32,19 @@ perceptron_machine = machine(perceptron, X, y)
 
 ## Train the model
 println("\nStart Learning\n")
-fitresult, _ , _  = MLJBase.fit(perceptron, 1, X, y)
+#fitresult, _ , _  = MLJBase.fit(perceptron, 1, X, y)
+MLJBase.fit!(perceptron_machine)
 
 println("\nLearning Finished\n")
 
 ## Make predictions
-y_hat_train = MLJBase.predict(fitresult, X)
+y_hat_train = MLJBase.predict(perceptron_machine, X)
 
 ## Evaluate the model
 println("Results:")
 println("Train accuracy:", mean(y_hat_train .== y))
 println("\n")
+
+
+
+
