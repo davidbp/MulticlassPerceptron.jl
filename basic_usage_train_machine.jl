@@ -42,9 +42,8 @@ n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
-## Define a Machine
-train_x = MLJBase.table(train_x)
-println("typeof(train_x)=$(typeof(train_x))")
+## Define a Machine 
+train_x = MLJBase.table(train_x') # machines expect data to be in rows, train_x contains examples as columns                  
 perceptron_machine = machine(perceptron, train_x, train_y)
 
 ## Train the model

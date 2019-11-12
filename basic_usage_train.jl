@@ -36,14 +36,14 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
     return train_x, train_y, test_x, test_y
 end
 
-train_x, train_y, test_x, test_y = load_MNIST( ;array_eltype=Float32, verbose=true)
+println("\nLoading data\n")
+train_x, train_y, test_x, test_y =  load_MNIST( ;array_eltype=Float32, verbose=true)
+
 
 ## Define model and train it
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
-
-
 
 
 ## Train the model

@@ -4,6 +4,7 @@ module MulticlassPerceptron
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
 using DataFrames
+using Tables
 
 # export MulticlassPerceptronClassifier, fit!, predict
 using LinearAlgebra: mul!
@@ -74,14 +75,16 @@ end
 function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
     # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
     if Xnew isa AbstractDataFrame
-        xnew  = MLJBase.matrix(Xnew)
-        xnew  = copy(Xnew')           # In this case I transpose because I assume a user passed examples as rows
-    else
-        xnew  = MLJBase.matrix(Xnew)
+        Xnew  = MLJBase.matrix(Xnew)
+        Xnew  = copy(Xnew')           # In this case I transpose because I assume a user passed examples as rows
+    elseif Xnew isa AbstractArray
+        Xnew  = MLJBase.matrix(Xnew)
+    elseif  Tables.istable(Xnew) 
+        Xnew = copy(transpose(Tables.matrix(Xnew)))
     end
 
     result, decode = fitresult
-    prediction = predict(result, xnew)
+    prediction = predict(result, Xnew)
     return decode(prediction)
 end
 
@@ -96,17 +99,20 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
 
     n_classes      = length(unique(y))
     classes_seen   = unique(y)
-    n_features, _  = num_features_and_observations(X)
 
     # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
     if X isa AbstractDataFrame
         X  = MLJBase.matrix(X)
         X  = copy(X')           # In this case I transpose because I assume a user passed examples as rows
-    else X isa AbstractArray
+    elseif X isa AbstractArray
         X  = MLJBase.matrix(X)  # (TODO: rethink this, MLJ will assume allways examples as rows) 
                                 # In this case I assume examples are the columns of X becuase the fit! with MulticlassPerceptronClassifierCore
                                 # precisely iterates over examples as columns
+    elseif  Tables.istable(X) 
+        X = copy(transpose(Tables.matrix(X)))
     end
+
+    n_features, _  = num_features_and_observations(X)
 
     decode  = MLJBase.decoder(y[1]) # for the predict method
     y = Int.(MLJ.int(y))            # Encoding categorical target as array of integers
