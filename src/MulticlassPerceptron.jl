@@ -93,12 +93,10 @@ end
 function MLJBase.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
                      X,
-                     y)
+                     y::CategoricalArray)
 
-    @assert y isa CategoricalArray "typeof(y)=$(typeof(y)) but typeof(y) should be a CategoricalArray"
 
-    n_classes      = length(unique(y))
-    classes_seen   = unique(y)
+    n_classes   = length(classes(y[1]))
 
     # Function fit!(perceptron, X, y) expects size(X) = n_features x n_observations
     if X isa AbstractDataFrame

@@ -8,8 +8,10 @@ push!(LOAD_PATH, "./src/")
 using MulticlassPerceptron
 
 ## Prepare data
-using RDatasets
-iris = dataset("datasets", "iris"); # a DataFrame
+#using RDatasets                                      # this is unreasonably slow
+#iris = dataset("datasets", "iris"); # a DataFrame    # this is unreasonably slow
+using RCall
+iris = R"iris" |> rcopy
 scrambled = shuffle(1:size(iris, 1))
 X = iris[scrambled, 1:4];
 y = iris[scrambled, 5];
