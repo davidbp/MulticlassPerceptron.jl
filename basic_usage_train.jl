@@ -16,10 +16,10 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
         time_init = time()
         println("\nMNIST Dataset Loading...")
     end
-    train_imgs = MNIST.images(:train) # size(train_imgs) -> (60000,)
-    test_imgs  = MNIST.images(:test)  # size(test_imgs) -> (10000,)
-    train_x    = array_eltype.(hcat(reshape.(train_imgs, :)...)) # size(train_x) -> (784, 60000)
-    test_x     = array_eltype.(hcat(reshape.(test_imgs, :)...)) # size(test_x)   -> (784, 60000)
+    train_imgs = MNIST.images(:train)                             # size(train_imgs) -> (60000,)
+    test_imgs  = MNIST.images(:test)                              # size(test_imgs)  -> (10000,)
+    train_x    = array_eltype.(hcat(reshape.(train_imgs, :)...))  # size(train_x)    -> (784, 60000)
+    test_x     = array_eltype.(hcat(reshape.(test_imgs, :)...))   # size(test_x)     -> (784, 60000)
     
     ## Prepare data
     train_y = MNIST.labels(:train) .+ 1;
@@ -49,7 +49,7 @@ perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_
 ## Train the model
 println("\nStart Learning\n")
 time_init = time()
-fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) # If train_y is a CategoricalArray
+fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) # 
 time_taken = round(time()-time_init; digits=3)
 
 println("\nLearning took $time_taken seconds\n")
