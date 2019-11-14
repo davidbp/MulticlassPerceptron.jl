@@ -250,15 +250,16 @@ end
 
 
 """
->    fit!(h::MulticlassPerceptronClassifier,
->         X::Array,
->         y::Array;
->         n_epochs=50,
->         learning_rate=0.1,
->         print_flag=false,
->         compute_accuracy=true,
->         seed=Random.seed!(1234),
->         shuffle_data=false)
+>     fit!(h::MulticlassPerceptronClassifierCore,
+>          X::AbstractArray, 
+>          y::AbstractVector;
+>          verbosity=0,
+>          n_epochs=50,
+>          learning_rate=1.,
+>          f_average_weights=false,
+>          compute_accuracy=true,
+>          seed=MersenneTwister(1234),
+>          f_shuffle_data=false)
 
 ##### Arguments
 
