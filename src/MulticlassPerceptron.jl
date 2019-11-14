@@ -1,24 +1,21 @@
-module MulticlassPerceptron
-
+module MulticlassPerceptron # begin module
 
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
 using DataFrames
 using Tables
-
-# export MulticlassPerceptronClassifier, fit!, predict
 using LinearAlgebra: mul!
-#using SparseArrays
 
 # Add explicit case for table data not to use sparse format
+using SparseArrays
 import SparseArrays.issparse
 issparse(X::DataFrame) = false  ## TODO: Add Tables option with sparse data when it is done
 
 import MLJBase
 using MLJ
 using CategoricalArrays
-using SparseArrays
 
+# Export methods to be used for MulticlassPerceptronClassifierCore 
 export MulticlassPerceptronClassifierCore, predict, fit
 
 num_features_and_observations(X::DataFrame)     = (size(X,2), size(X,1))
@@ -363,4 +360,4 @@ function fit!(h::MulticlassPerceptronClassifierCore,
 
 end
 
-end # module
+end # end module
