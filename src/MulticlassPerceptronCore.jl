@@ -5,7 +5,7 @@ using LinearAlgebra: mul!
 
 
 # Export methods to be used for MulticlassPerceptronClassifierCore 
-export MulticlassPerceptronClassifierCore, predict, fit
+export MulticlassPerceptronClassifierCore, predict, fit!
 
 
 #= #########################################################################
@@ -55,8 +55,8 @@ end
 """
 Predicts the class for a given input using a `MulticlassPerceptronClassifierCore`.
 
-The placeholder `class_placeholder` is an array used to avoid allocating memory for each matrix-vector multiplication.
-This function is meant to be used while training.
+The placeholder `class_placeholder` is an array used to avoid allocating memory for each 
+matrix-vector multiplication. This function is meant to be used while training.
 
 - Returns the predicted class.
 """
@@ -71,7 +71,16 @@ end
 
 
 """
-Function to compute the accuracy between `y` and `y_hat`.
+
+    accuracy(y::AbstractVector, y_hat::AbstractVector)
+
+Computes the accuracy between `y` and `y_hat`.
+
+# Examples
+```julia-repl
+julia> accuracy([1, 1, 1], [1, 2, 3])
+0.3333333333333333
+```
 """
 function accuracy(y::AbstractVector, y_hat::AbstractVector)
 
@@ -112,6 +121,9 @@ end
 
 
 
+### TODO MAYBE: Add option pocket as keyword argument
+###- **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
+
 
 """
 >     fit!(h::MulticlassPerceptronClassifierCore,
@@ -124,6 +136,8 @@ end
 >          compute_accuracy=true,
 >          seed=MersenneTwister(1234),
 >          f_shuffle_data=false)
+
+Function to train a MulticlassPerceptronClassifierCore model.
 
 ##### Arguments
 
@@ -139,11 +153,8 @@ end
 - **`compute_accuracy`**, (Bool type), if `true` the accuracy is computed at the end of every epoch.
 - **`seed`**, (MersenneTwister type), seed for the permutation of the datapoints in case there the data is shuffled.
 - **`f_shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
+
 """
-
-### TODO MAYBE: Add option pocket as keyword argument
-###- **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
-
 function fit!(h::MulticlassPerceptronClassifierCore,
               X::AbstractArray, 
               y::AbstractVector;
