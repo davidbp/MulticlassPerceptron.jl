@@ -19,6 +19,8 @@ Or use `add` to install the package. Remember to be in `pkg>` mode inside Julia 
 
 ### Test the code
 
+In the `examples` folder there are some code examples to test the package.
+
 Executing `basic_usage_train.jl` you should get
 
 ```
@@ -42,9 +44,7 @@ This code snippet loads the MNIST Dataset and saves the classes as a `Categorica
 
 ```julia
 
-push!(LOAD_PATH, "./src/")
 using MulticlassPerceptron
-
 using MLDatasets
 using CategoricalArrays
 
