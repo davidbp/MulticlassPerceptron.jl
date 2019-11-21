@@ -2,7 +2,7 @@
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
 using LinearAlgebra: mul!
-
+using MLJBase
 
 # Export methods to be used for MulticlassPerceptronClassifierCore 
 export MulticlassPerceptronClassifierCore, predict, fit!
@@ -26,10 +26,15 @@ end
 
 
 """
-Function to build an empty **`MulticlassPerceptronClassifierCore`**.
+> function MulticlassPerceptronClassifierCore(T::Type,
+>                                            n_classes::Int, 
+>                                            n_features::Int, 
+>                                            is_sparse::Bool)
+
+
+Creates an initial  **`MulticlassPerceptronClassifierCore`** with random weights.
 
 The boolean  **`isparse=True`** makes the model use sparse weights.
-
 """
 function MulticlassPerceptronClassifierCore(T::Type,
                                             n_classes::Int, 
@@ -106,7 +111,7 @@ end
 
 """
 Function to predict the class for a given input batch X. 
-- Returns the predicted class.
+- Returns the predicted class for each element in the X.
 """
 function predict(h::MulticlassPerceptronClassifierCore, X::AbstractMatrix)
     predictions       = zeros(Int64, size(X, 2))
@@ -235,3 +240,20 @@ function fit!(h::MulticlassPerceptronClassifierCore,
     end
 
 end
+
+
+
+function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierCore, MLJBase.CategoricalDecoder}, Xnew)
+
+    # Function fit!(MulticlassPerceptronClassifierCore, X, y) expects size(X) = n_features x n_observations
+    if Xnew isa AbstractArray
+        Xnew  = MLJBase.matrix(Xnew)
+    elseif Tables.istable(Xnew) 
+        Xnew  = MLJBase.matrix(Xnew, transpose=true)
+    end
+
+    result, decode = fitresult
+    prediction     = predict(result, Xnew)
+    return decode(prediction)
+end
+

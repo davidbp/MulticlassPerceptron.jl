@@ -6,7 +6,7 @@ using MLJ, MLJBase, CategoricalArrays, DataFrames
 using Flux, Flux.Data.MNIST
 
 # Load MulticlassPerceptron
-push!(LOAD_PATH, "./src/")
+push!(LOAD_PATH, "../src/")
 using MulticlassPerceptron
 
 function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
@@ -27,7 +27,7 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
     ## Encode targets as CategoricalArray objects
     train_y = CategoricalArray(train_y)
     test_y  = CategoricalArray(test_y)
-
+    
     if verbose
         time_taken = round(time()-time_init; digits=3)
         println("\nMNIST Dataset Loaded, it took $time_taken seconds")
@@ -50,7 +50,7 @@ perceptron_machine = machine(perceptron, train_x, train_y)   # machines expert T
 println("\nStart Learning\n")
 time_init = time()
 #fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) # If train_y is a CategoricalArray
-fit!(perceptron_machine)
+MLJBase.fit!(perceptron_machine)
 time_taken = round(time()-time_init; digits=3)  
 println("\nLearning took $time_taken seconds\n")
 
