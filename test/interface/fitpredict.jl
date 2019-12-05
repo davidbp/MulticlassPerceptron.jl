@@ -1,3 +1,7 @@
+using Test
+using Random
+using MLJBase
+using MulticlassPerceptron
 
 # 10*(1-rand()) is uniform from (0, 10]
 uniform_sample_in_range(n_features, minval, maxval) = 2*maxval*rand(n_features) .+ minval

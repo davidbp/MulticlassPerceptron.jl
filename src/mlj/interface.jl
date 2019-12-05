@@ -76,12 +76,11 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
                      X,
                      y)
-
     
     n_classes   = length(MLJ.classes(y[1]))
 
-    if Tables.istable(Xnew)
-        Xnew = MLJBase.matrix(Xnew, transpose=true)
+    if Tables.istable(X)
+        X = MLJBase.matrix(X, transpose=true)
     end
 
     n_features, _  = num_features_and_observations(X)
