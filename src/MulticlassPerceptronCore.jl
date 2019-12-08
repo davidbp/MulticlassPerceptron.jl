@@ -2,21 +2,20 @@
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
 using LinearAlgebra: mul!
-using MLJBase
 
-# Export methods to be used for MulticlassPerceptronClassifierCore 
-export MulticlassPerceptronClassifierCore, predict, fit!
+# Export methods to be used for MulticlassPerceptronCore
+export MulticlassPerceptronCore, predict, fit!
 
 
 #= #########################################################################
-   Defining MulticlassPerceptronClassifierCore:
-   
+   Defining MulticlassPerceptronCore:
+
    The code below is MLJ agnostic with the exeption of MLJBase.predict
-   Therefore `MulticlassPerceptronClassifierCore` can be used outside MLJ
+   Therefore `MulticlassPerceptronCore` can be used outside MLJ
 
 ######################################################################### =#
 
-mutable struct MulticlassPerceptronClassifierCore{T}
+mutable struct MulticlassPerceptronCore{T}
     W::AbstractMatrix{T}
     b::AbstractVector{T}
     n_classes::Int
@@ -26,47 +25,47 @@ end
 
 
 """
-> function MulticlassPerceptronClassifierCore(T::Type,
->                                            n_classes::Int, 
->                                            n_features::Int, 
->                                            is_sparse::Bool)
+> function MulticlassPerceptronCore(T::Type,
+>                                   n_classes::Int,
+>                                   n_features::Int,
+>                                   is_sparse::Bool)
 
 
-Creates an initial  **`MulticlassPerceptronClassifierCore`** with random weights.
+Creates an initial  **`MulticlassPerceptronCore`** with random weights.
 
 The boolean  **`isparse=True`** makes the model use sparse weights.
 """
-function MulticlassPerceptronClassifierCore(T::Type,
-                                            n_classes::Int, 
-                                            n_features::Int, 
-                                            is_sparse::Bool)
+function MulticlassPerceptronCore(T::Type,
+                                  n_classes::Int,
+                                  n_features::Int,
+                                  is_sparse::Bool)
 
     if is_sparse==false
-        return MulticlassPerceptronClassifierCore{T}(rand(T, n_features, n_classes),
-                                                                                       zeros(T, n_classes),
-                                                                                       n_classes,
-                                                                                       n_features,
-                                                                                       is_sparse)
+        return MulticlassPerceptronCore{T}(rand(T, n_features, n_classes),
+                                           zeros(T, n_classes),
+                                           n_classes,
+                                           n_features,
+                                           is_sparse)
     else
-        return  MulticlassPerceptronClassifierCore{T}(sparse(rand(T, n_features, n_classes)),
-                                                            spzeros(T, n_classes),
-                                                            n_classes,
-                                                            n_features,
-                                                            is_sparse)
+        return  MulticlassPerceptronCore{T}(sparse(rand(T, n_features, n_classes)),
+                                            spzeros(T, n_classes),
+                                            n_classes,
+                                            n_features,
+                                            is_sparse)
     end
 end
 
 
 """
-Predicts the class for a given input using a `MulticlassPerceptronClassifierCore`.
+Predicts the class for a given input using a `MulticlassPerceptronCore`.
 
-The placeholder `class_placeholder` is an array used to avoid allocating memory for each 
+The placeholder `class_placeholder` is an array used to avoid allocating memory for each
 matrix-vector multiplication. This function is meant to be used while training.
 
 - Returns the predicted class.
 """
-function predict_with_placeholder(h::MulticlassPerceptronClassifierCore, 
-                                  x::AbstractVector, 
+function predict_with_placeholder(h::MulticlassPerceptronCore,
+                                  x::AbstractVector,
                                   class_placeholder::AbstractVector)
 
     #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
@@ -101,7 +100,7 @@ end
 Function to predict the class for a given input example **`x`** (with placeholder).
 - Returns the predicted class.
 """
-function predict(h::MulticlassPerceptronClassifierCore,
+function predict(h::MulticlassPerceptronCore,
                  x::AbstractVector,
                  class_placeholder::AbstractVector)
 
@@ -110,10 +109,10 @@ function predict(h::MulticlassPerceptronClassifierCore,
 end
 
 """
-Function to predict the class for a given input batch X. 
+Function to predict the class for a given input batch X.
 - Returns the predicted class for each element in the X.
 """
-function predict(h::MulticlassPerceptronClassifierCore, X::AbstractMatrix)
+function predict(h::MulticlassPerceptronCore, X::AbstractMatrix)
     predictions       = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
@@ -131,8 +130,8 @@ end
 
 
 """
->     fit!(h::MulticlassPerceptronClassifierCore,
->          X::AbstractArray, 
+>     fit!(h::MulticlassPerceptronCore,
+>          X::AbstractArray,
 >          y::AbstractVector;
 >          verbosity=0,
 >          n_epochs=50,
@@ -142,11 +141,11 @@ end
 >          seed=MersenneTwister(1234),
 >          f_shuffle_data=false)
 
-Function to train a MulticlassPerceptronClassifierCore model.
+Function to train a MulticlassPerceptronCore model.
 
 ##### Arguments
 
-- **`h`**, (MulticlassPerceptronClassifierCore{T} type), Multiclass perceptron.
+- **`h`**, (MulticlassPerceptronCore{T} type), Multiclass perceptron.
 - **`X`**, (Array{T,2} type), data contained in the columns of X.
 - **`y`**, (Vector{T} type), class labels (as integers from 1 to n_classes).
 
@@ -160,8 +159,8 @@ Function to train a MulticlassPerceptronClassifierCore model.
 - **`f_shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 
 """
-function fit!(h::MulticlassPerceptronClassifierCore,
-              X::AbstractArray, 
+function fit!(h::MulticlassPerceptronCore,
+              X::AbstractArray,
               y::AbstractVector;
               verbosity=0,
               n_epochs=50,
@@ -173,7 +172,7 @@ function fit!(h::MulticlassPerceptronClassifierCore,
 
 
     n_features, n_observations = num_features_and_observations(X)
-    
+
     @assert n_observations == length(y) "n_observations = $n_observations but length(y)=$(length(y))"
 
     scores = []
@@ -220,7 +219,7 @@ function fit!(h::MulticlassPerceptronClassifierCore,
             end
             counter +=1
         end
-            
+
         acc = (n_observations - n_mistakes)/n_observations
 
         # push!(scores, acc) maybe it would be nice to return an array with monitoring metrics to
@@ -240,20 +239,3 @@ function fit!(h::MulticlassPerceptronClassifierCore,
     end
 
 end
-
-
-
-function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronClassifierCore, MLJBase.CategoricalDecoder}, Xnew)
-
-    # Function fit!(MulticlassPerceptronClassifierCore, X, y) expects size(X) = n_features x n_observations
-    if Xnew isa AbstractArray
-        Xnew  = MLJBase.matrix(Xnew)
-    elseif Tables.istable(Xnew) 
-        Xnew  = MLJBase.matrix(Xnew, transpose=true)
-    end
-
-    result, decode = fitresult
-    prediction     = predict(result, Xnew)
-    return decode(prediction)
-end
-

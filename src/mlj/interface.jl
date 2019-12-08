@@ -76,7 +76,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
                      X,
                      y)
-    
+
     n_classes   = length(MLJ.classes(y[1]))
 
     if Tables.istable(X)
@@ -89,9 +89,9 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     y = Int.(MLJ.int(y))            # Encoding categorical target as array of integers
 
     is_sparse = issparse(X)
-    perceptron = MulticlassPerceptronClassifierCore(model.element_type, 
+    perceptron = MulticlassPerceptronCore(model.element_type,
                                                     n_classes,
-                                                    n_features, 
+                                                    n_features,
                                                     is_sparse);
 
     ### Fitting code starts
@@ -122,6 +122,19 @@ function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
     return decode(prediction)
 end
 
+function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronCore, MLJBase.CategoricalDecoder}, Xnew)
+
+    # Function fit!(MulticlassPerceptronCore, X, y) expects size(X) = n_features x n_observations
+    if Xnew isa AbstractArray
+        Xnew  = MLJBase.matrix(Xnew)
+    elseif Tables.istable(Xnew)
+        Xnew  = MLJBase.matrix(Xnew, transpose=true)
+    end
+
+    result, decode = fitresult
+    prediction     = predict(result, Xnew)
+    return decode(prediction)
+end
 
 #= =======================
    METADATA FOR ALL MODELS
@@ -139,6 +152,6 @@ MLJBase.metadata_model(MulticlassPerceptronClassifier,
     input=MLJBase.Table(MLJBase.Continuous),
     target=AbstractVector{<:MLJBase.Finite},
     weights=false,
-    descr=descr_(MulticlassPerceptronClassifier), 
+    descr=descr_(MulticlassPerceptronClassifier),
     ath=lp_(MulticlassPerceptronClassifier))
 =#

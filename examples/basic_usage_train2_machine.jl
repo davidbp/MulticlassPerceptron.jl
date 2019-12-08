@@ -4,14 +4,14 @@ using Statistics
 using MLJ, MLJBase, CategoricalArrays
 using Random
 
-push!(LOAD_PATH, "../src/")
+#push!(LOAD_PATH, "../src/") ## Uncomment if MulticlassPerceptron not installed
 using MulticlassPerceptron
 
 ## Prepare data
-#using RDatasets                                      # this is unreasonably slow
-#iris = dataset("datasets", "iris"); # a DataFrame    # this is unreasonably slow
-using RCall
-iris = R"iris" |> rcopy
+using RDatasets                                      # this is unreasonably slow
+iris = dataset("datasets", "iris"); # a DataFrame    # this is unreasonably slow
+#using RCall
+#iris = R"iris" |> rcopy
 scrambled = shuffle(1:size(iris, 1))
 X = iris[scrambled, 1:4];
 y = iris[scrambled, 5];
@@ -24,7 +24,7 @@ y = CategoricalArray(y)
 ## Define model and train it
 n_features = size(X, 2);
 n_classes  = length(unique(y));
-perceptron = MulticlassPerceptron.MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
+perceptron = MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
 ## Define a Machine
 perceptron_machine = machine(perceptron, X, y)
@@ -48,7 +48,3 @@ y_hat_train = MLJBase.predict(perceptron_machine, X)
 println("Results:")
 println("Train accuracy:", mean(y_hat_train .== y))
 println("\n")
-
-
-
-
