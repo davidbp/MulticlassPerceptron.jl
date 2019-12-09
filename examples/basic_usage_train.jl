@@ -55,8 +55,8 @@ time_taken = round(time()-time_init; digits=3)
 println("\nLearning took $time_taken seconds\n")
 
 ## Make predictions
-y_hat_train = predict(fitresult, train_x)
-y_hat_test  = predict(fitresult, test_x);
+y_hat_train = MLJBase.predict(fitresult, train_x)
+y_hat_test  = MLJBase.predict(fitresult, test_x);
 
 ## Evaluate the model
 println("Results:")
