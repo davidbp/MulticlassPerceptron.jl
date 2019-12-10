@@ -4,7 +4,6 @@ using DataFrames
 using Tables
 using CategoricalArrays
 
-import MLJ
 import MLJBase
 
 # Add explicit case for table data not to use sparse format
@@ -13,7 +12,7 @@ issparse(X::DataFrame) = false  ## TODO: Add Tables option with sparse data when
 
 
 #= ##########################################################################
-   Defining MLJ interface for a MulticlassPerceptronClassifier
+   Defining MLJBase interface for a MulticlassPerceptronClassifier
 ########################################################################## =#
 
 num_features_and_observations(X::DataFrame)     = reverse(size(X))  # (size(X,2), size(X,1))
@@ -55,8 +54,8 @@ function MulticlassPerceptronClassifier( ;
     return model
 end
 
-
-function MLJ.clean!(model::MulticlassPerceptronClassifier)
+# should this be MLJ.clean! ?
+function MLJBase.clean!(model::MulticlassPerceptronClassifier)
     warning = ""
     if model.n_epochs < 1
         warning *= "Need n_epochs ≥ 1. Resetting n_epochs=100 "
@@ -77,7 +76,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
                      X,
                      y)
 
-    n_classes   = length(MLJ.classes(y[1]))
+    n_classes   = length(MLJBase.classes(y[1]))
 
     if Tables.istable(X)
         X = MLJBase.matrix(X, transpose=true)
@@ -86,7 +85,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
     n_features, _  = num_features_and_observations(X)
 
     decode  = MLJBase.decoder(y[1]) # Storing a decode for the predict method
-    y = Int.(MLJ.int(y))            # Encoding categorical target as array of integers
+    y = Int.(MLJBase.int(y))            # Encoding categorical target as array of integers
 
     is_sparse = issparse(X)
     perceptron = MulticlassPerceptronCore(model.element_type,

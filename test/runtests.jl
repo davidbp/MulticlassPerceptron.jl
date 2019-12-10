@@ -1,7 +1,6 @@
 using Test
 using Random
 using MLJBase
-#using MLJ
 using CategoricalArrays
 
 #push!(LOAD_PATH, "../src/")
