@@ -5,6 +5,7 @@ using Tables
 using CategoricalArrays
 
 import MLJBase
+import MLJBase: target_scitype
 
 # Add explicit case for table data not to use sparse format
 import SparseArrays.issparse
@@ -27,7 +28,7 @@ mutable struct MulticlassPerceptronClassifier <: MLJBase.Deterministic
     element_type::DataType
 end
 
-
+#target_scitype(::Type{MulticlassPerceptronClassifier}) = AbstractVector{<:MLJBase.Finite}
 descr(::Type{MulticlassPerceptronClassifier}) = "Classifier corresponding to a Multiclass Perceptron."
 
 
@@ -135,6 +136,7 @@ function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronCore, MLJBase.Cate
     return decode(prediction)
 end
 
+
 #= =======================
    METADATA FOR ALL MODELS
    ======================= =#
@@ -146,11 +148,11 @@ descr_(M) = descr(M) *
 
 lp_(M) = "MulticlassPerceptron.$(MLJBase.name(M))"
 
-#=
+
 MLJBase.metadata_model(MulticlassPerceptronClassifier,
     input=MLJBase.Table(MLJBase.Continuous),
     target=AbstractVector{<:MLJBase.Finite},
     weights=false,
     descr=descr_(MulticlassPerceptronClassifier),
-    ath=lp_(MulticlassPerceptronClassifier))
-=#
+    path=lp_(MulticlassPerceptronClassifier))
+
