@@ -3,7 +3,10 @@
 using Random: shuffle, MersenneTwister
 using LinearAlgebra: mul!
 
-# Export methods to be used for MulticlassPerceptronCore
+using StatsBase
+import StatsBase: fit!, predict
+
+ # Export methods to be used for MulticlassPerceptronCore
 export MulticlassPerceptronCore, predict, fit!
 
 
@@ -112,7 +115,7 @@ end
 Function to predict the class for a given input batch X.
 - Returns the predicted class for each element in the X.
 """
-function predict(h::MulticlassPerceptronCore, X::AbstractMatrix)
+function StatsBase.predict(h::MulticlassPerceptronCore, X::AbstractMatrix)
     predictions       = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
@@ -159,7 +162,7 @@ Function to train a MulticlassPerceptronCore model.
 - **`f_shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 
 """
-function fit!(h::MulticlassPerceptronCore,
+function StatsBase.fit!(h::MulticlassPerceptronCore,
               X::AbstractArray,
               y::AbstractVector;
               verbosity=0,
