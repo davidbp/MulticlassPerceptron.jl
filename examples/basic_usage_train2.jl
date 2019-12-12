@@ -36,7 +36,7 @@ fitresult, _  = fit(perceptron, 1, X, y)
 println("\nLearning Finished\n")
 
 ## Make predictions
-y_hat_train = MLJBase.predict(fitresult, X)
+y_hat_train = predict(fitresult, X)
 
 ## Evaluate the model
 println("Results:")
