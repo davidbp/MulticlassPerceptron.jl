@@ -1,7 +1,7 @@
 name = "MulticlassPerceptron"
 uuid = "dab37cba-9818-490d-9918-279965c31300"
 authors = ["David Buchaca Prats <davidbuchaca@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
