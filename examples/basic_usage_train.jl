@@ -1,14 +1,13 @@
 
-#using MulticlassPerceptron
 using Statistics
-using MLJBase, CategoricalArrays
 
 # We use flux only to get the MNIST
 using Flux, Flux.Data.MNIST
+using CategoricalArrays
 
 # Load MulticlassPerceptron
-#push!(LOAD_PATH, "../src/") ## Uncomment if MulticlassPerceptron not installed
 using MulticlassPerceptron
+using MLJBase
 
 function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
 
@@ -55,8 +54,8 @@ time_taken = round(time()-time_init; digits=3)
 println("\nLearning took $time_taken seconds\n")
 
 ## Make predictions
-y_hat_train = predict(fitresult, train_x)
-y_hat_test  = predict(fitresult, test_x);
+y_hat_train = MLJBase.predict(fitresult, train_x)
+y_hat_test  = MLJBase.predict(fitresult, test_x);
 
 ## Evaluate the model
 println("Results:")

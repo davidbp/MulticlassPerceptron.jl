@@ -6,6 +6,7 @@ using CategoricalArrays
 
 import MLJBase
 import MLJBase: target_scitype
+import MLJModelInterface
 
 # Add explicit case for table data not to use sparse format
 import SparseArrays.issparse
@@ -72,7 +73,7 @@ function MLJBase.clean!(model::MulticlassPerceptronClassifier)
 end
 
 
-function MLJBase.fit(model::MulticlassPerceptronClassifier,
+function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
                      X,
                      y)
@@ -111,7 +112,7 @@ function MLJBase.fit(model::MulticlassPerceptronClassifier,
 end
 
 
-function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
+function MLJModelInterface.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
 
     if Tables.istable(Xnew)
         Xnew = MLJBase.matrix(Xnew, transpose=true)
@@ -122,7 +123,7 @@ function MLJBase.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
     return decode(prediction)
 end
 
-function MLJBase.predict(fitresult::Tuple{MulticlassPerceptronCore, MLJBase.CategoricalDecoder}, Xnew)
+function MLJModelInterface.predict(fitresult::Tuple{MulticlassPerceptronCore, MLJBase.CategoricalDecoder}, Xnew)
 
     # Function fit!(MulticlassPerceptronCore, X, y) expects size(X) = n_features x n_observations
     if Xnew isa AbstractArray

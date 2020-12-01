@@ -8,8 +8,8 @@ using Random
 using MulticlassPerceptron
 
 ## Prepare data
-using RDatasets                                      # this is unreasonably slow
-iris = dataset("datasets", "iris"); # a DataFrame    # this is unreasonably slow
+using RDatasets                                
+iris = dataset("datasets", "iris"); 
 #using RCall
 #iris = R"iris" |> rcopy
 
@@ -36,7 +36,7 @@ fitresult, _  = fit(perceptron, 1, X, y)
 println("\nLearning Finished\n")
 
 ## Make predictions
-y_hat_train = predict(fitresult, X)
+y_hat_train = MLJBase.predict(fitresult, X)
 
 ## Evaluate the model
 println("Results:")

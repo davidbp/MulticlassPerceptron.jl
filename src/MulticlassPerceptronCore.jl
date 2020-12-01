@@ -115,7 +115,7 @@ end
 Function to predict the class for a given input batch X.
 - Returns the predicted class for each element in the X.
 """
-function StatsBase.predict(h::MulticlassPerceptronCore, X::AbstractMatrix)
+function predict(h::MulticlassPerceptronCore, X::AbstractMatrix)
     predictions       = zeros(Int64, size(X, 2))
     class_placeholder = zeros(eltype(h.W), h.n_classes)
 
@@ -162,7 +162,7 @@ Function to train a MulticlassPerceptronCore model.
 - **`f_shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 
 """
-function StatsBase.fit!(h::MulticlassPerceptronCore,
+function fit!(h::MulticlassPerceptronCore,
               X::AbstractArray,
               y::AbstractVector;
               verbosity=0,
