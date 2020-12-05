@@ -48,7 +48,7 @@ If this works then you can already use `MulticlassPerceptron` models!
 
 The following code shows how to instantiate a struct `MulticlassPerceptronCore` and how to train it.
 
-```
+```julia
 using CategoricalArrays
 using MulticlassPerceptron
 using Statistics
@@ -92,8 +92,6 @@ test_y     = MNIST.labels(:test)  .+ 1;
 ## Encode targets as CategoricalArray objects
 train_y = CategoricalArray(train_y)
 test_y  = CategoricalArray(test_y)
-
-
 ```
 
 We can create a `MulticlassPerceptronClassifer` as follows :
