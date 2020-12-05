@@ -26,9 +26,7 @@ In the `examples` folder there are some code examples to test the package.
 Executing `julia --project=. ./examples/basic_usage_train.jl` you should get
 
 ```
- 
 Loading data
-
 
 MNIST Dataset Loading...
 
@@ -42,10 +40,32 @@ Learning took 9.635 seconds
 Results:
 Train accuracy:0.93595
 Test accuracy:0.9263
-
 ```
 
 If this works then you can already use `MulticlassPerceptron` models!
+
+### Core model
+
+The following code shows how to instantiate a struct `MulticlassPerceptronCore` and how to train it.
+
+```
+using CategoricalArrays
+using MulticlassPerceptron
+using Statistics
+
+n, p, n_classes, sparse, f_average_weights = 100, 2, 2, false, true
+X, y,_ = MulticlassPerceptron.make_blobs(n; centers=n_classes, random_seed=4, return_centers=true)
+X = copy(X')
+
+perceptron_core = MulticlassPerceptronCore(Float64, n_classes, p, sparse)
+fit!(perceptron_core, X, y; n_epochs=200, f_average_weights=f_average_weights, verbosity=2)
+ŷ = MulticlassPerceptron.predict(perceptron_core, X)
+
+println("length(y)=$(length(y))")
+println("size(X)=$(size(X))")
+println("length(ŷ)=$(length(ŷ))")
+println("Accuracy $(mean(ŷ .== y))")
+```
 
 
 
