@@ -6,7 +6,7 @@ using LinearAlgebra: mul!
 using StatsBase
 import StatsBase: fit!, predict
 
- # Export methods to be used for MulticlassPerceptronCore
+# Export methods to be used for MulticlassPerceptronCore
 export MulticlassPerceptronCore, predict, fit!
 
 
@@ -38,7 +38,7 @@ Creates an initial  **`MulticlassPerceptronCore`** with random weights.
 
 The boolean  **`isparse=True`** makes the model use sparse weights.
 """
-function MulticlassPerceptronCore(T::Type,
+function MulticlassPerceptronCore(T,
                                   n_classes::Int,
                                   n_features::Int,
                                   is_sparse::Bool)

@@ -17,21 +17,32 @@ Or use `add` to install the package. Remember to be in `pkg>` mode inside Julia 
 (v1.1) pkg> add "https://github.com/davidbp/MulticlassPerceptron.jl"
 ```
 
+
+
 ### Test the code
 
 In the `examples` folder there are some code examples to test the package.
 
-Executing `basic_usage_train.jl` you should get
+Executing `julia --project=. ./examples/basic_usage_train.jl` you should get
 
 ```
+ 
+Loading data
+
+
+MNIST Dataset Loading...
+
+MNIST Dataset Loaded, it took 0.69 seconds
+
 Start Learning
 
-Epoch: 50 	 Accuracy: 0.898
-Learning Finished
+Epoch: 50 	 Accuracy: 0.899
+Learning took 9.635 seconds
 
 Results:
-Train accuracy:0.9359333333333333
-Test accuracy:0.927
+Train accuracy:0.93595
+Test accuracy:0.9263
+
 ```
 
 If this works then you can already use `MulticlassPerceptron` models!
