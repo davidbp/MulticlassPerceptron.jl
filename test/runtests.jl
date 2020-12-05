@@ -16,7 +16,7 @@ using MulticlassPerceptron
 
         perceptron_core = MulticlassPerceptronCore(Float64, n_classes, p, sparse)
         fit!(perceptron_core, X, y; n_epochs=10, f_average_weights=true)
-        ŷ = predict(perceptron_core, X)
+        ŷ = MulticlassPerceptron.predict(perceptron_core, X)
         @test length(ŷ)==length(y)
     end
 
@@ -28,7 +28,7 @@ using MulticlassPerceptron
 
         perceptron_core = MulticlassPerceptronCore(Float64, n_classes, p, sparse)
         fit!(perceptron_core, X, y; n_epochs=10, f_average_weights=true)
-        ŷ = predict(perceptron_core, X)
+        ŷ = MulticlassPerceptron.predict(perceptron_core, X)
         @test length(ŷ)==length(y)
     end
 
@@ -46,7 +46,7 @@ end
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
         fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+        ŷ          = MLJBase.predict(fitresult, X)
         @test length(ŷ)==length(y)
     end
 
@@ -60,7 +60,7 @@ end
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
         fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+        ŷ          = MLJBase.predict(fitresult, X)
         @test length(ŷ)==length(y)
     end
 
@@ -80,7 +80,7 @@ using MLJ
                                                     f_average_weights=true)
         perceptron_machine = machine(perceptron, X, y)
         fit!(perceptron_machine)
-        ŷ = predict(perceptron_machine, X)
+        ŷ = MLJBase.predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
 
@@ -94,7 +94,7 @@ using MLJ
                                                     f_average_weights=true)
         perceptron_machine = machine(perceptron, X, y)
         fit!(perceptron_machine)
-        ŷ = predict(perceptron_machine, X)
+        ŷ = MLJBase.predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
 
