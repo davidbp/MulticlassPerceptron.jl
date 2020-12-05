@@ -6,8 +6,6 @@ uniform_sample_in_zero_maxval(n_features, maxval) = maxval .* (1 .- rand(n_featu
 
 uniform_sample_in_minval_maxval(n_features, minval, maxval) = (maxval-minval) .* rand(n_features) .+ minval 
 
-
-
 """
     make_blobs(n_examples=100; 
                n_features=2, 
