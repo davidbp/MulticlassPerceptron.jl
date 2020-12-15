@@ -40,7 +40,7 @@ fit!(perceptron_machine)
 println("\nLearning Finished\n")
 
 ## Make predictions
-y_hat_train = MLJBase.predict(perceptron_machine, X)
+y_hat_train = predict(perceptron_machine, X)
 # ERROR: MethodError: no method matching adjoint(::DataFrame)
 
 

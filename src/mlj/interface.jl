@@ -5,7 +5,7 @@ using Tables
 using CategoricalArrays
 
 import MLJBase
-import MLJBase: target_scitype
+#import MLJBase: target_scitype
 import MLJModelInterface
 
 # Add explicit case for table data not to use sparse format
@@ -122,6 +122,7 @@ function MLJModelInterface.predict(model::MulticlassPerceptronClassifier, fitres
     prediction = predict(result, Xnew)
     return decode(prediction)
 end
+
 
 function MLJModelInterface.predict(fitresult::Tuple{MulticlassPerceptronCore, MLJBase.CategoricalDecoder}, Xnew)
 

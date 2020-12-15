@@ -4,7 +4,9 @@ using Random: shuffle, MersenneTwister
 using LinearAlgebra: mul!
 
 using StatsBase
-import StatsBase: fit!, predict
+#import StatsBase: fit!, predict
+import StatsBase: fit!
+import MLJModelInterface.predict
 
 # Export methods to be used for MulticlassPerceptronCore
 export MulticlassPerceptronCore, predict, fit!
