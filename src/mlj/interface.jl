@@ -24,8 +24,8 @@ mutable struct MulticlassPerceptronClassifier <: MLJModelInterface.Deterministic
     element_type::DataType
 end
 
-#target_scitype(::Type{MulticlassPerceptronClassifier}) = AbstractVector{<:MLJModelInterface.Finite}
-descr(::Type{MulticlassPerceptronClassifier}) = "Classifier corresponding to a Multiclass Perceptron."
+descr(::Type{MulticlassPerceptronClassifier}) =
+    "Classifier corresponding to a Multiclass Perceptron."
 
 
 const CLF_MODELS = (MulticlassPerceptronClassifier)
@@ -131,9 +131,9 @@ descr_(M) = descr(M) *
 
 lp_(M) = "MulticlassPerceptron.$(MLJModelInterface.name(M))"
 
-
 MLJModelInterface.metadata_model(MulticlassPerceptronClassifier,
-    input=MLJModelInterface.Table(MLJModelInterface.Continuous),
+    input=Union{MLJModelInterface.Table(MLJModelInterface.Continuous),
+                AbstractMatrix{MLJModelInterface.Continuous}},
     target=AbstractVector{<:MLJModelInterface.Finite},
     weights=false,
     descr=descr_(MulticlassPerceptronClassifier),

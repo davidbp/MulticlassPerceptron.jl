@@ -47,6 +47,9 @@ end
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
+        @test MLJBase.load_path(perceptron) ==
+            "MulticlassPerceptron.MulticlassPerceptronClassifier"
+
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
         ŷ          = predict(perceptron, fitresult, X)
         @test length(ŷ)==length(y)
