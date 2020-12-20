@@ -138,7 +138,7 @@ end
 >     fit!(h::MulticlassPerceptronCore,
 >          X::AbstractArray,
 >          y::AbstractVector;
->          verbosity=0,
+>          verbosity=1,
 >          n_epochs=50,
 >          learning_rate=1.,
 >          f_average_weights=false,
@@ -156,7 +156,7 @@ Function to train a MulticlassPerceptronCore model.
 
 ##### Keyword arguments
 
-- **`verbosity`**, (Integer type), if `verbosity>0` information is printed.
+- **`verbosity`**, (Integer type), if `verbosity>1` information is printed.
 - **`n_epochs`**, (Integer type), number of passes (epochs) through the data.
 - **`learning_rate`**, (Float type), learning rate (The standard perceptron is with learning_rate=1.)
 - **`compute_accuracy`**, (Bool type), if `true` the accuracy is computed at the end of every epoch.
@@ -167,7 +167,7 @@ Function to train a MulticlassPerceptronCore model.
 function fit!(h::MulticlassPerceptronCore,
               X::AbstractArray,
               y::AbstractVector;
-              verbosity=0,
+              verbosity=1,
               n_epochs=50,
               learning_rate=1.,
               f_average_weights=false,
@@ -230,10 +230,10 @@ function fit!(h::MulticlassPerceptronCore,
         # push!(scores, acc) maybe it would be nice to return an array with monitoring metrics to
         # allow users to decide if the model has converged
 
-        if verbosity ==1
+        if verbosity ==2
             print("\r\u1b[K")
             print("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))")
-        elseif verbosity ==2
+        elseif verbosity ==3
             println("Epoch: $(epoch) \t Accuracy: $(round(acc; digits=3))")
         end
     end

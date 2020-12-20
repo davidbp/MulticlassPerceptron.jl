@@ -7,7 +7,6 @@ using CategoricalArrays
 
 # Load MulticlassPerceptron
 using MulticlassPerceptron
-using MLJBase
 
 function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
 
@@ -24,10 +23,6 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
     train_y = MNIST.labels(:train) .+ 1;
     test_y  = MNIST.labels(:test)  .+ 1;
 
-    ## Encode targets as CategoricalArray objects
-    train_y = CategoricalArray(train_y)
-    test_y  = CategoricalArray(test_y)
-
     if verbose
         time_taken = round(time()-time_init; digits=3)
         println("\nMNIST Dataset Loaded, it took $time_taken seconds")
@@ -38,21 +33,18 @@ end
 println("\nLoading data\n")
 train_x, train_y, test_x, test_y = load_MNIST( ;array_eltype=Float32, verbose=true)
 
-
 ## Define model and train it
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptronCore(Float32,
-                                      n_classes=n_classes,
-                                      n_features=n_features,
-                                      is_sparse=false)
-
-
+                                      n_classes,
+                                      n_features,
+                                      false)
 
 ## Train the model
 println("\nStart Learning\n")
 time_init = time()
-fit!(perceptron, train_x, train_y) 
+fit!(perceptron, train_x, train_y, f_average_weights=true, n_epochs=50) 
 time_taken = round(time()-time_init; digits=3)
 
 println("\nLearning took $time_taken seconds\n")

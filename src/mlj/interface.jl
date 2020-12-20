@@ -56,6 +56,7 @@ function MulticlassPerceptronClassifier( ;
     return model
 end
 
+
 # should this be MLJ.clean! ?
 function MLJBase.clean!(model::MulticlassPerceptronClassifier)
     warning = ""
@@ -74,9 +75,9 @@ end
 
 
 function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
-                     verbosity::Int,
-                     X,
-                     y)
+                               verbosity::Int,
+                               X,
+                               y)
 
     n_classes   = length(MLJBase.classes(y[1]))
 
@@ -118,9 +119,9 @@ function MLJModelInterface.predict(model::MulticlassPerceptronClassifier, fitres
         Xnew = MLJBase.matrix(Xnew, transpose=true)
     end
 
-    result, decode = fitresult
-    prediction = predict(result, Xnew)
-    return decode(prediction)
+    fitted_model, class_decoder = fitresult
+    prediction = predict(fitted_model, Xnew)
+    return class_decoder(prediction)
 end
 
 
@@ -133,10 +134,11 @@ function MLJModelInterface.predict(fitresult::Tuple{MulticlassPerceptronCore, ML
         Xnew  = MLJBase.matrix(Xnew, transpose=true)
     end
 
-    result, decode = fitresult
-    prediction     = predict(result, Xnew)
-    return decode(prediction)
+    model, class_decoder = fitresult
+    prediction = predict(model, Xnew)
+    return class_decoder(prediction)
 end
+
 
 
 #= =======================

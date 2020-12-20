@@ -5,6 +5,7 @@ using CategoricalArrays
 
 #push!(LOAD_PATH, "../src/")
 using MulticlassPerceptron
+#using MLJ
 
 @testset "MulticlassPerceptronCore (tests model implementation)" begin
 
@@ -45,7 +46,7 @@ end
 
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
-                                                f_average_weights=true)
+                                                    f_average_weights=true)
         fitresult, = fit(perceptron, verbosity, X, y)
         ŷ          = predict(fitresult, X)
         @test length(ŷ)==length(y)
@@ -59,7 +60,7 @@ end
 
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
-                                                f_average_weights=true)
+                                                   f_average_weights=true)
         fitresult, = fit(perceptron, verbosity, X, y)
         ŷ          = predict(fitresult, X)
         @test length(ŷ)==length(y)
@@ -67,7 +68,6 @@ end
 
 end
 
-using MLJ
 
 @testset "MulticlassPerceptronClassifier machine (tests MLJ machine interface)" begin
 
@@ -80,7 +80,7 @@ using MLJ
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
         perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine)
+        fit!(perceptron_machine,verbosity=0)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
@@ -94,7 +94,7 @@ using MLJ
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
         perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine)
+        fit!(perceptron_machine,verbosity=0)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end

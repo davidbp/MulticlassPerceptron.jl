@@ -37,6 +37,7 @@ println("\nLearning Finished\n")
 
 ## Make predictions
 y_hat_train = MLJBase.predict(fitresult, X)
+# MLJBase.predict(fitresult[1], MLJBase.matrix(X)') # this works
 
 ## Evaluate the model
 println("Results:")
