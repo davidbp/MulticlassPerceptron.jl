@@ -1,6 +1,6 @@
 #using MulticlassPerceptron
 using Statistics
-using MLJ, MLJBase, CategoricalArrays, DataFrames
+using MLJ, MLJBase, CategoricalArrays
 
 # We use flux only to get the MNIST
 using Flux, Flux.Data.MNIST
@@ -43,8 +43,23 @@ n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
 ## Define a Machine
-train_x = MLJBase.table(train_x')                            # machines expect data to be in rows, train_x contains examples as columns
-perceptron_machine = machine(perceptron, train_x, train_y)   # machines expert Tables.Table or DataFrame objects, not AbstractArrays
+#train_x = MLJBase.table(train_x')  # machines can work with Tables.Table or DataFrame objects              
+#test_x = MLJBase.table(test_x')   # machines can work with Tables.Table or DataFrame objects              
+train_x = train_x'                  # machines expect data to be in rows
+test_x = test_x'                    # machines expect data to be in rows
+
+perceptron_machine = machine(perceptron, train_x, train_y)   
+
+println("\nTypes and shapes before calling fit!(perceptron_machine)")
+@show typeof(perceptron_machine)
+@show typeof(train_x)
+@show typeof(train_y)
+@show size(train_x)
+@show size(train_y)
+@show size(test_x)
+@show size(test_y)
+@show n_features
+@show n_classes
 
 ## Train the model
 println("\nStart Learning\n")
@@ -60,6 +75,7 @@ y_hat_test  = MLJBase.predict(perceptron_machine, test_x);
 
 ## Evaluate the model
 println("Results:")
-println("Train accuracy:", mean(y_hat_train .== train_y))
-println("Test accuracy:",  mean(y_hat_test  .== test_y))
+println("Train accuracy:", round(mean(y_hat_train .== train_y), digits=3) )
+println("Test accuracy:",  round(mean(y_hat_test  .== test_y), digits=3) ) 
 println("\n")
+

@@ -114,7 +114,17 @@ function MLJModelInterface.predict(model::MulticlassPerceptronClassifier,
     Xmatrix = _reformat(Xnew)
 
     result, decode = fitresult
-    @show result
+    prediction = predict(result, Xmatrix)
+    return decode(prediction)
+end
+
+### <- New predict method (better API?)
+function MLJModelInterface.predict(fitresult,
+                                   Xnew)
+
+    Xmatrix = _reformat(Xnew)
+
+    result, decode = fitresult
     prediction = predict(result, Xmatrix)
     return decode(prediction)
 end

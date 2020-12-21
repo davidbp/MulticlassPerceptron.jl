@@ -170,7 +170,7 @@ function fit!(h::MulticlassPerceptronCore,
               verbosity=0,
               n_epochs=50,
               learning_rate=1.,
-              f_average_weights=false,
+              f_average_weights=true,
               compute_accuracy=true,
               seed=MersenneTwister(1234),
               f_shuffle_data=false)
