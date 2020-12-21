@@ -1,26 +1,22 @@
 export MulticlassPerceptronClassifier
 
-using DataFrames
 using Tables
 using CategoricalArrays
 
-#import MLJMOdelInterface: target_scitype
+#import MLJModelInterface: target_scitype
 import MLJModelInterface
+
+g() = "hi"
+
 
 # Add explicit case for table data not to use sparse format
 import SparseArrays.issparse
-issparse(X::DataFrame) = false  ## TODO: Add Tables option with sparse data when it is done
-
 
 #= ##########################################################################
-   Defining MLJMOdelInterface interface for a MulticlassPerceptronClassifier
+   Defining MLJModelInterface interface for a MulticlassPerceptronClassifier
 ########################################################################## =#
 
-num_features_and_observations(X::DataFrame)     = reverse(size(X))  # (size(X,2), size(X,1))
-num_features_and_observations(X::AbstractArray) = size(X)           # (size(X,1), size(X,2))
-
-
-mutable struct MulticlassPerceptronClassifier <: MLJMOdelInterface.Deterministic
+mutable struct MulticlassPerceptronClassifier <: MLJModelInterface.Deterministic
     n_epochs::Int
     n_epoch_patience::Int
     f_average_weights::Bool
@@ -28,8 +24,8 @@ mutable struct MulticlassPerceptronClassifier <: MLJMOdelInterface.Deterministic
     element_type::DataType
 end
 
-#target_scitype(::Type{MulticlassPerceptronClassifier}) = AbstractVector{<:MLJMOdelInterface.Finite}
-descr(::Type{MulticlassPerceptronClassifier}) = "Classifier corresponding to a Multiclass Perceptron."
+descr(::Type{MulticlassPerceptronClassifier}) =
+    "Classifier corresponding to a Multiclass Perceptron."
 
 
 const CLF_MODELS = (MulticlassPerceptronClassifier)
@@ -50,13 +46,13 @@ function MulticlassPerceptronClassifier( ;
                                            f_shuffle_data,
                                            element_type)
 
-    message = MLJMOdelInterface.clean!(model)
+    message = MLJModelInterface.clean!(model)
     isempty(message) || @warn message
     return model
 end
 
 # should this be MLJ.clean! ?
-function MLJMOdelInterface.clean!(model::MulticlassPerceptronClassifier)
+function MLJModelInterface.clean!(model::MulticlassPerceptronClassifier)
     warning = ""
     if model.n_epochs < 1
         warning *= "Need n_epochs ≥ 1. Resetting n_epochs=100 "
@@ -71,31 +67,32 @@ function MLJMOdelInterface.clean!(model::MulticlassPerceptronClassifier)
     return warning
 end
 
+# front end for incoming features, which can only be tables or matrices
+_reformat(X) = MLJModelInterface.matrix(X, transpose=true) # fallback is table
+_reformat(X, ::Type{<:AbstractMatrix}) = X
 
 function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
                      X,
                      y)
 
-    n_classes   = length(MLJMOdelInterface.classes(y[1]))
+    n_classes   = length(MLJModelInterface.classes(y[1]))
 
-    if Tables.istable(X)
-        X = MLJMOdelInterface.matrix(X, transpose=true)
-    end
+    Xmatrix = _reformat(X)
 
-    n_features, _  = num_features_and_observations(X)
+    n_features = size(Xmatrix, 1)
 
-    decode  = MLJMOdelInterface.decoder(y[1]) # Storing a decode for the predict method
-    y = Int.(MLJMOdelInterface.int(y))            # Encoding categorical target as array of integers
+    decode  = MLJModelInterface.decoder(y[1]) # Storing a decode for the predict method
+    y = Int.(MLJModelInterface.int(y))        # Encoding categorical target as array of integers
 
-    is_sparse = issparse(X)
+    is_sparse = issparse(Xmatrix)
     perceptron = MulticlassPerceptronCore(model.element_type,
                                                     n_classes,
                                                     n_features,
                                                     is_sparse);
 
     ### Fitting code starts
-    fit!(perceptron, X, y;
+    fit!(perceptron, Xmatrix, y;
          verbosity=verbosity,
          n_epochs=model.n_epochs,
          f_average_weights=model.f_average_weights,
@@ -110,30 +107,15 @@ function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
     return fitresult, cache, report
 end
 
+function MLJModelInterface.predict(model::MulticlassPerceptronClassifier,
+                                   fitresult,
+                                   Xnew)
 
-function MLJModelInterface.predict(model::MulticlassPerceptronClassifier, fitresult, Xnew)
-
-    if Tables.istable(Xnew)
-        Xnew = MLJBase.matrix(Xnew, transpose=true)
-    end
-
-    result, decode = fitresult
-    prediction = _predict(result, Xnew)        # <------------ changed name to "private" name
-    return decode(prediction)
-end
-
-
-function _predict(fitresult, Xnew)              # <----------- removed type annotation
-
-    # Function fit!(MulticlassPerceptronCore, X, y) expects size(X) = n_features x n_observations
-    if Xnew isa AbstractArray
-        Xnew  = MLJBase.matrix(Xnew)
-    elseif Tables.istable(Xnew)
-        Xnew  = MLJBase.matrix(Xnew, transpose=true)
-    end
+    Xmatrix = _reformat(Xnew)
 
     result, decode = fitresult
-    prediction     = predict(result, Xnew)
+    @show result
+    prediction = predict(result, Xmatrix)
     return decode(prediction)
 end
 
@@ -144,16 +126,15 @@ end
 
 descr_(M) = descr(M) *
     "\n→ based on [MulticlassPerceptron](https://github.com/davidbp/MulticlassPerceptron.jl)" *
-    "\n→ do `@load $(MLJMOdelInterface.name(M)) pkg=\"MulticlassPerceptron\" to use the model.`" *
-    "\n→ do `?$(MLJMOdelInterface.name(M))` for documentation."
+    "\n→ do `@load $(MLJModelInterface.name(M)) pkg=\"MulticlassPerceptron\" to use the model.`" *
+    "\n→ do `?$(MLJModelInterface.name(M))` for documentation."
 
-lp_(M) = "MulticlassPerceptron.$(MLJMOdelInterface.name(M))"
+lp_(M) = "MulticlassPerceptron.$(MLJModelInterface.name(M))"
 
-
-MLJMOdelInterface.metadata_model(MulticlassPerceptronClassifier,
-    input=MLJMOdelInterface.Table(MLJMOdelInterface.Continuous),
-    target=AbstractVector{<:MLJMOdelInterface.Finite},
+MLJModelInterface.metadata_model(MulticlassPerceptronClassifier,
+    input=Union{MLJModelInterface.Table(MLJModelInterface.Continuous),
+                AbstractMatrix{MLJModelInterface.Continuous}},
+    target=AbstractVector{<:MLJModelInterface.Finite},
     weights=false,
     descr=descr_(MulticlassPerceptronClassifier),
     path=lp_(MulticlassPerceptronClassifier))
-

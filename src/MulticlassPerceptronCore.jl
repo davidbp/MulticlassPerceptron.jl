@@ -176,9 +176,11 @@ function fit!(h::MulticlassPerceptronCore,
               f_shuffle_data=false)
 
 
-    n_features, n_observations = num_features_and_observations(X)
+    n_features, n_observations = size(X)
 
-    @assert n_observations == length(y) "n_observations = $n_observations but length(y)=$(length(y))"
+    n_observations == length(y) ||
+        throw(DimensionMismatch("n_observations = $n_observations "*
+                                "but length(y)=$(length(y))"))
 
     scores = []
     T = eltype(X)

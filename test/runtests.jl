@@ -1,7 +1,8 @@
 using Test
 using Random
-using MLJBase
 using CategoricalArrays
+using Statistics
+import MLJBase
 
 #push!(LOAD_PATH, "../src/")
 using MulticlassPerceptron
@@ -46,8 +47,11 @@ end
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
-        fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+        @test MLJBase.load_path(perceptron) ==
+            "MulticlassPerceptron.MulticlassPerceptronClassifier"
+
+        fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
+        ŷ          = predict(perceptron, fitresult, X)
         @test length(ŷ)==length(y)
     end
 
@@ -60,14 +64,12 @@ end
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
-        fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+        fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
+        ŷ          = predict(perceptron, fitresult, X)
         @test length(ŷ)==length(y)
     end
 
 end
-
-using MLJ
 
 @testset "MulticlassPerceptronClassifier machine (tests MLJ machine interface)" begin
 
@@ -79,8 +81,8 @@ using MLJ
 
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
-        perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine)
+        perceptron_machine = MLJBase.machine(perceptron, X, y)
+        MLJBase.fit!(perceptron_machine)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
@@ -93,8 +95,8 @@ using MLJ
 
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
-        perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine)
+        perceptron_machine = MLJBase.machine(perceptron, X, y)
+        MLJBase.fit!(perceptron_machine)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
