@@ -2,12 +2,7 @@ export MulticlassPerceptronClassifier
 
 using Tables
 using CategoricalArrays
-
-#import MLJModelInterface: target_scitype
 import MLJModelInterface
-
-g() = "hi"
-
 
 # Add explicit case for table data not to use sparse format
 import SparseArrays.issparse
@@ -27,12 +22,9 @@ end
 descr(::Type{MulticlassPerceptronClassifier}) =
     "Classifier corresponding to a Multiclass Perceptron."
 
-
 const CLF_MODELS = (MulticlassPerceptronClassifier)
 const ALL_MODELS = (MulticlassPerceptronClassifier)
 
-
-# keyword constructor
 function MulticlassPerceptronClassifier( ;
                                         n_epochs=100,
                                         n_epoch_patience=5,
@@ -51,7 +43,6 @@ function MulticlassPerceptronClassifier( ;
     return model
 end
 
-# should this be MLJ.clean! ?
 function MLJModelInterface.clean!(model::MulticlassPerceptronClassifier)
     warning = ""
     if model.n_epochs < 1
@@ -77,11 +68,8 @@ function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
                      y)
 
     n_classes   = length(MLJModelInterface.classes(y[1]))
-
     Xmatrix = _reformat(X)
-
     n_features = size(Xmatrix, 1)
-
     decode  = MLJModelInterface.decoder(y[1]) # Storing a decode for the predict method
     y = Int.(MLJModelInterface.int(y))        # Encoding categorical target as array of integers
 
@@ -97,7 +85,7 @@ function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
          n_epochs=model.n_epochs,
          f_average_weights=model.f_average_weights,
          f_shuffle_data=model.f_shuffle_data
-        );
+         );
 
     ### Fitting code ends
     cache = nothing
@@ -118,7 +106,6 @@ function MLJModelInterface.predict(model::MulticlassPerceptronClassifier,
     return decode(prediction)
 end
 
-### <- New predict method (better API?)
 function MLJModelInterface.predict(fitresult,
                                    Xnew)
 
@@ -128,7 +115,6 @@ function MLJModelInterface.predict(fitresult,
     prediction = predict(result, Xmatrix)
     return decode(prediction)
 end
-
 
 #= =======================
    METADATA FOR ALL MODELS
