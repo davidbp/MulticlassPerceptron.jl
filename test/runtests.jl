@@ -73,14 +73,17 @@ end
 
         # MLJ user has provided an n x p matrix (raw):
         Random.seed!(1234)
-        fitresult, = MLJBase.fit(perceptron, verbosity, A, y)
+        # should get "warning" that performance is not optimal:
+        fitresult, = @test_logs((:info, r"Core multiclass"),
+                                MLJBase.fit(perceptron, 1, A, y))
         ŷ2          = predict(perceptron, fitresult, A)
         @test ŷ2 == ŷ
 
         # MLJ user has provided an n x p matrix (adjoint of a p x n):
         B = permutedims(A)'
         Random.seed!(1234)
-        fitresult, = MLJBase.fit(perceptron, verbosity, B, y)
+        # should not get any extra logging:
+        fitresult, = @test_logs MLJBase.fit(perceptron, 1, B, y)
         ŷ3          = predict(perceptron, fitresult, B)
         @test ŷ3 == ŷ
 

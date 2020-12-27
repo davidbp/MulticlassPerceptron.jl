@@ -1,3 +1,7 @@
+#########################################################
+# WARNING: THIS FILE IS NOT CURRENTLY INCLUDED IN TESTS #
+#########################################################
+
 using Test
 using Random
 using MLJBase

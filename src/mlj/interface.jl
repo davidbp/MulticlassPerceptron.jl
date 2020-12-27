@@ -62,7 +62,7 @@ end
 # matrices; the output of these methods is an abstract array with
 # features as rows:
 _reformat(X) = MLJModelInterface.matrix(X, transpose=true) # fallback is table
-_reformat(X, ::Type{<:AbstractMatrix}) = X' 
+_reformat(X::AbstractMatrix) = X'
 
 function MLJModelInterface.fit(model::MulticlassPerceptronClassifier,
                      verbosity::Int,
