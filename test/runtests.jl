@@ -51,7 +51,7 @@ end
             "MulticlassPerceptron.MulticlassPerceptronClassifier"
 
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
-        ŷ          = predict(perceptron, fitresult, X) 
+        ŷ          = predict(perceptron, fitresult, X)
 
         @test length(ŷ)==length(y)
     end
@@ -59,16 +59,31 @@ end
     @testset "n=100, p=10, n_classes=3" begin
         Random.seed!(6161)
         n, p, n_classes, verbosity = 100, 10, 3, 0
-        X = randn(n, p)
+        A = randn(n, p)
         y = CategoricalArray(rand(1:n_classes, n))
 
-        X = MLJBase.table(X)
+        X = MLJBase.table(A)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
+        Random.seed!(1234)
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
         ŷ          = predict(perceptron, fitresult, X)
 
         @test length(ŷ)==length(y)
+
+        # MLJ user has provided an n x p matrix (raw):
+        Random.seed!(1234)
+        fitresult, = MLJBase.fit(perceptron, verbosity, A, y)
+        ŷ2          = predict(perceptron, fitresult, A)
+        @test ŷ2 == ŷ
+
+        # MLJ user has provided an n x p matrix (adjoint of a p x n):
+        B = permutedims(A)'
+        Random.seed!(1234)
+        fitresult, = MLJBase.fit(perceptron, verbosity, B, y)
+        ŷ3          = predict(perceptron, fitresult, B)
+        @test ŷ3 == ŷ
+
     end
 
 end
