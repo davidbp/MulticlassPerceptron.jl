@@ -51,8 +51,7 @@ end
             "MulticlassPerceptron.MulticlassPerceptronClassifier"
 
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
-        # ŷ          = predict(perceptron, fitresult, X) # Do we really want this API?
-        ŷ          = predict(fitresult, X) # Why not simpy this?
+        ŷ          = predict(perceptron, fitresult, X) 
 
         @test length(ŷ)==length(y)
     end
@@ -67,8 +66,7 @@ end
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                 f_average_weights=true)
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
-        #ŷ          = predict(perceptron, fitresult, X) # Do we really want this API?
-        ŷ          = predict(fitresult, X) # Why not simpy this?
+        ŷ          = predict(perceptron, fitresult, X)
 
         @test length(ŷ)==length(y)
     end
