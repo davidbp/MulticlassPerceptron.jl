@@ -46,7 +46,7 @@ end
 
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
-                                                f_average_weights=true)
+                                                    f_average_weights=true)
         @test MLJBase.load_path(perceptron) ==
             "MulticlassPerceptron.MulticlassPerceptronClassifier"
 
@@ -64,7 +64,7 @@ end
 
         X = MLJBase.table(A)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
-                                                f_average_weights=true)
+                                                    f_average_weights=true)
         Random.seed!(1234)
         fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
         ŷ          = predict(perceptron, fitresult, X)

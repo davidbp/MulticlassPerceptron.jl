@@ -1,41 +1,41 @@
 
 using Statistics
 
-# We use flux only to get the MNIST
-using Flux, Flux.Data.MNIST
-#using CategoricalArrays
+using MLDatasets
+using CategoricalArrays
 
 # Load MulticlassPerceptron
 #push!(LOAD_PATH, "../src/") 
 using MulticlassPerceptron
 
 println("\nMNIST Dataset, MulticlassPerceptronCore")
-
-
-function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
+function load_MNIST( ;array_eltype::DataType=Float32, as_image::Bool=false, verbose::Bool=true)
 
     if verbose
         time_init = time()
         println("MNIST Dataset Loading...")
     end
-    train_imgs = MNIST.images(:train)                             # size(train_imgs) -> (60000,)
-    test_imgs  = MNIST.images(:test)                              # size(test_imgs)  -> (10000,)
-    train_x    = array_eltype.(hcat(reshape.(train_imgs, :)...))  # size(train_x)    -> (784, 60000)
-    test_x     = array_eltype.(hcat(reshape.(test_imgs, :)...))   # size(test_x)     -> (784, 60000)
-
+    train_x, train_y = MNIST.traindata()
+    test_x,  test_y  = MNIST.testdata()
+        
+    if as_image == false
+        train_x = reshape(train_x,(28*28, 60_000))
+        test_x = reshape(test_x,(28*28, 10_000))        
+    end
+    
     ## Prepare data
-    train_y = MNIST.labels(:train) .+ 1;
-    test_y  = MNIST.labels(:test)  .+ 1;
+    train_y = Int.(train_y .+ 1);
+    test_y  = Int.(test_y .+ 1);
 
-    ## CategoricalArray are not needed for the MulticlassPerceptronCore 
     #train_y = CategoricalArray(train_y)
     #test_y  = CategoricalArray(test_y)
-
+    
+    
     if verbose
         time_taken = round(time()-time_init; digits=3)
         println("MNIST Dataset Loaded, it took $time_taken seconds")
     end
-    return train_x, train_y, test_x, test_y
+    return array_eltype.(train_x),train_y,  array_eltype.(test_x), test_y
 end
 
 println("\nLoading data")
@@ -65,7 +65,7 @@ println("\nTypes and shapes before calling fit!(perceptron, train_x, train_y)")
 ## Train the model
 println("\n\nStart Learning")
 time_init = time()
-fit!(perceptron, train_x, train_y) 
+fit!(perceptron, train_x, train_y; n_epochs=100) 
 time_taken = round(time()-time_init; digits=3)
 println("Learning took $time_taken seconds")
 

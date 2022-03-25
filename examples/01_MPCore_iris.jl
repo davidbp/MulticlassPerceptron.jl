@@ -1,4 +1,5 @@
 
+using CategoricalArrays
 using Statistics
 using Random
 
