@@ -8,7 +8,10 @@ using Random
 using MulticlassPerceptron
 
 ## Prepare data
-using RDatasets                                
+using RDatasets
+
+println("\nIris Dataset, MulticlassPerceptronClassifier")
+
 iris = dataset("datasets", "iris"); 
 #using RCall
 #iris = R"iris" |> rcopy
@@ -26,20 +29,28 @@ n_features = size(X, 2);
 n_classes  = length(unique(y));
 perceptron = MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
-## MLJBase.fit needs as input X array
-X = copy(matrix(X)')
+println("\nTypes and shapes before calling fit(perceptron, 1, train_x, train_y)")
+@show typeof(perceptron)
+@show typeof(X)
+@show typeof(y)
+@show size(X)
+@show size(y)
+@show n_features
+@show n_classes
 
 ## Train the model
-println("\nStart Learning\n")
+println("\nStart Learning")
+time_init = time()
 fitresult, _  = fit(perceptron, 1, X, y)
-
-println("\nLearning Finished\n")
+time_taken = round(time()-time_init; digits=3)
+println("")
+@show typeof(fitresult)
+println("\nLearning took $time_taken seconds\n")
 
 ## Make predictions
-y_hat_train = MLJBase.predict(fitresult, X)
-# MLJBase.predict(fitresult[1], MLJBase.matrix(X)') # this works
+y_hat_train = predict(fitresult, X)
 
 ## Evaluate the model
-println("Results:")
-println("Train accuracy:", mean(y_hat_train .== y))
+println("\nResults:")
+println("Train accuracy:", round(mean(y_hat_train .== y), digits=3) )
 println("\n")

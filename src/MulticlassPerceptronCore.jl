@@ -1,7 +1,6 @@
-
 # using MetadataTools,  DocStringExtensions
 using Random: shuffle, MersenneTwister
-using LinearAlgebra: mul!
+using LinearAlgebra: mul!, Adjoint
 
 using StatsBase
 #import StatsBase: fit!, predict
@@ -170,15 +169,23 @@ function fit!(h::MulticlassPerceptronCore,
               verbosity=1,
               n_epochs=50,
               learning_rate=1.,
-              f_average_weights=false,
+              f_average_weights=true,
               compute_accuracy=true,
               seed=MersenneTwister(1234),
               f_shuffle_data=false)
 
+    if X isa Adjoint && verbosity > 0
+        @info "Core multiclass perceptron algorithm receiving features as an "*
+            "adjoint matrix. Providing feature matrix in the form "*
+            "permtutedims(A)'` for some matrix `A` may improve "*
+            "performance. "
+    end
 
-    n_features, n_observations = num_features_and_observations(X)
+    n_features, n_observations = size(X)
 
-    @assert n_observations == length(y) "n_observations = $n_observations but length(y)=$(length(y))"
+    n_observations == length(y) ||
+        throw(DimensionMismatch("n_observations = $n_observations "*
+                                "but length(y)=$(length(y))"))
 
     scores = []
     T = eltype(X)

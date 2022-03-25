@@ -1,7 +1,8 @@
 using Test
 using Random
-using MLJBase
 using CategoricalArrays
+using Statistics
+import MLJBase
 
 #push!(LOAD_PATH, "../src/")
 using MulticlassPerceptron
@@ -47,27 +48,49 @@ end
         X = MLJBase.table(X)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
-        fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+        @test MLJBase.load_path(perceptron) ==
+            "MulticlassPerceptron.MulticlassPerceptronClassifier"
+
+        fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
+        ŷ          = predict(perceptron, fitresult, X)
+
         @test length(ŷ)==length(y)
     end
 
     @testset "n=100, p=10, n_classes=3" begin
         Random.seed!(6161)
         n, p, n_classes, verbosity = 100, 10, 3, 0
-        X = randn(n, p)
+        A = randn(n, p)
         y = CategoricalArray(rand(1:n_classes, n))
 
-        X = MLJBase.table(X)
+        X = MLJBase.table(A)
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
-                                                   f_average_weights=true)
-        fitresult, = fit(perceptron, verbosity, X, y)
-        ŷ          = predict(fitresult, X)
+                                                    f_average_weights=true)
+        Random.seed!(1234)
+        fitresult, = MLJBase.fit(perceptron, verbosity, X, y)
+        ŷ          = predict(perceptron, fitresult, X)
+
         @test length(ŷ)==length(y)
+
+        # MLJ user has provided an n x p matrix (raw):
+        Random.seed!(1234)
+        # should get "warning" that performance is not optimal:
+        fitresult, = @test_logs((:info, r"Core multiclass"),
+                                MLJBase.fit(perceptron, 1, A, y))
+        ŷ2          = predict(perceptron, fitresult, A)
+        @test ŷ2 == ŷ
+
+        # MLJ user has provided an n x p matrix (adjoint of a p x n):
+        B = permutedims(A)'
+        Random.seed!(1234)
+        # should not get any extra logging:
+        fitresult, = @test_logs MLJBase.fit(perceptron, 1, B, y)
+        ŷ3          = predict(perceptron, fitresult, B)
+        @test ŷ3 == ŷ
+
     end
 
 end
-
 
 @testset "MulticlassPerceptronClassifier machine (tests MLJ machine interface)" begin
 
@@ -79,8 +102,8 @@ end
 
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
-        perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine,verbosity=0)
+        perceptron_machine = MLJBase.machine(perceptron, X, y)
+        MLJBase.fit!(perceptron_machine)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end
@@ -93,8 +116,8 @@ end
 
         perceptron = MulticlassPerceptronClassifier(n_epochs=10;
                                                     f_average_weights=true)
-        perceptron_machine = machine(perceptron, X, y)
-        fit!(perceptron_machine,verbosity=0)
+        perceptron_machine = MLJBase.machine(perceptron, X, y)
+        MLJBase.fit!(perceptron_machine)
         ŷ = predict(perceptron_machine, X)
         @test length(ŷ)==length(y)
     end

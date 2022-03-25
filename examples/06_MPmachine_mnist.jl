@@ -1,13 +1,16 @@
-
+#using MulticlassPerceptron
 using Statistics
+using MLJ, MLJBase, CategoricalArrays
 
 # We use flux only to get the MNIST
 using Flux, Flux.Data.MNIST
-using CategoricalArrays
 
 # Load MulticlassPerceptron
+#push!(LOAD_PATH, "../src/") ## Uncomment if MulticlassPerceptron not installed
 using MulticlassPerceptron
-using MLJBase
+
+println("\nMNIST Dataset, Machine with a MulticlassPerceptronClassifier")
+
 
 function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
 
@@ -35,30 +38,47 @@ function load_MNIST( ;array_eltype::DataType=Float32, verbose::Bool=true)
     return train_x, train_y, test_x, test_y
 end
 
-println("\nLoading data\n")
 train_x, train_y, test_x, test_y = load_MNIST( ;array_eltype=Float32, verbose=true)
-
 
 ## Define model and train it
 n_features = size(train_x, 1);
 n_classes  = length(unique(train_y));
 perceptron = MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 
+## Define a Machine
+#train_x = MLJBase.table(train_x')  # machines can work with Tables.Table or DataFrame objects              
+#test_x = MLJBase.table(test_x')   # machines can work with Tables.Table or DataFrame objects              
+train_x = train_x'                  # machines expect data to be in rows
+test_x = test_x'                    # machines expect data to be in rows
+
+perceptron_machine = machine(perceptron, train_x, train_y)   
+
+println("\nTypes and shapes before calling fit!(perceptron_machine)")
+@show typeof(perceptron_machine)
+@show typeof(train_x)
+@show typeof(train_y)
+@show size(train_x)
+@show size(train_y)
+@show size(test_x)
+@show size(test_y)
+@show n_features
+@show n_classes
 
 ## Train the model
 println("\nStart Learning\n")
 time_init = time()
-fitresult, _ , _  = fit(perceptron, 1, train_x, train_y) #
+#fitresult, _ , _  = MLJBase.fit(perceptron, 1, train_x, train_y) # If train_y is a CategoricalArray
+fit!(perceptron_machine)
 time_taken = round(time()-time_init; digits=3)
-
 println("\nLearning took $time_taken seconds\n")
 
 ## Make predictions
-y_hat_train = predict(fitresult, train_x)
-y_hat_test  = predict(fitresult, test_x);
+y_hat_train = MLJBase.predict(perceptron_machine, train_x)
+y_hat_test  = MLJBase.predict(perceptron_machine, test_x);
 
 ## Evaluate the model
 println("Results:")
-println("Train accuracy:", mean(y_hat_train .== train_y))
-println("Test accuracy:",  mean(y_hat_test  .== test_y))
+println("Train accuracy:", round(mean(y_hat_train .== train_y), digits=3) )
+println("Test accuracy:",  round(mean(y_hat_test  .== test_y), digits=3) ) 
 println("\n")
+

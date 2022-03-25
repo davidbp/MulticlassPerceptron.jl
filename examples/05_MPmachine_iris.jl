@@ -8,8 +8,11 @@ using Random
 using MulticlassPerceptron
 
 ## Prepare data
-using RDatasets                                      # this is unreasonably slow
-iris = dataset("datasets", "iris"); # a DataFrame    # this is unreasonably slow
+using RDatasets                                     
+println("\nIris Dataset, Machine with a MulticlassPerceptronClassifier")
+
+
+iris = dataset("datasets", "iris"); # a DataFrame  
 #using RCall
 #iris = R"iris" |> rcopy
 scrambled = shuffle(1:size(iris, 1))
@@ -29,22 +32,27 @@ perceptron = MulticlassPerceptronClassifier(n_epochs=50; f_average_weights=true)
 ## Define a Machine
 perceptron_machine = machine(perceptron, X, y)
 
-## MLJBase.fit needs as input X array
-#X = copy(MLJ.matrix(X)')
+println("\nTypes and shapes before calling fit!(perceptron_machine)")
+@show typeof(perceptron_machine)
+@show typeof(X)
+@show typeof(y)
+@show size(X)
+@show size(y)
+@show n_features
+@show n_classes
 
 ## Train the model
 println("\nStart Learning\n")
+time_init = time()
 #fitresult, _ , _  = MLJBase.fit(perceptron, 1, X, y)
 fit!(perceptron_machine)
-
-println("\nLearning Finished\n")
+time_taken = round(time()-time_init; digits=3)
+println("Learning took $time_taken seconds\n")
 
 ## Make predictions
 y_hat_train = predict(perceptron_machine, X)
-# ERROR: MethodError: no method matching adjoint(::DataFrame)
-
 
 ## Evaluate the model
-println("Results:")
-println("Train accuracy:", mean(y_hat_train .== y))
+println("\nResults:")
+println("Train accuracy:", round(mean(y_hat_train .== y), digits=3) )
 println("\n")
