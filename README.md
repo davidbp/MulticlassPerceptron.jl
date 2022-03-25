@@ -23,23 +23,33 @@ Or use `add` to install the package. Remember to be in `pkg>` mode inside Julia 
 
 In the `examples` folder there are some code examples to test the package.
 
-Executing `julia --project=. ./examples/basic_usage_train.jl` you should get
+Executing `julia --project=. ./examples/02_MPCore_mnist.jl` you should get
 
 ```
+MNIST Dataset, MulticlassPerceptronCore
+
 Loading data
-
 MNIST Dataset Loading...
+MNIST Dataset Loaded, it took 1.365 seconds
 
-MNIST Dataset Loaded, it took 0.69 seconds
+Types and shapes before calling fit!(perceptron, train_x, train_y)
+typeof(perceptron) = MulticlassPerceptronCore{Float32}
+typeof(train_x) = Matrix{Float32}
+typeof(train_y) = Vector{Int64}
+size(train_x) = (784, 60000)
+size(train_y) = (60000,)
+size(test_x) = (784, 10000)
+size(test_y) = (10000,)
+n_features = 784
+n_classes = 10
+
 
 Start Learning
-
-Epoch: 50 	 Accuracy: 0.899
-Learning took 9.635 seconds
+Learning took 18.225 seconds
 
 Results:
-Train accuracy:0.93595
-Test accuracy:0.9263
+Train accuracy:0.937
+Test accuracy:0.925
 ```
 
 If this works then you can already use `MulticlassPerceptron` models!
