@@ -19,7 +19,7 @@ Or use `add` to install the package. Remember to be in `pkg>` mode inside Julia 
 
 
 
-### Test the code
+### Example
 
 In the `examples` folder there are some code examples to test the package.
 
@@ -42,7 +42,6 @@ size(test_x) = (784, 10000)
 size(test_y) = (10000,)
 n_features = 784
 n_classes = 10
-
 
 Start Learning
 Learning took 18.225 seconds
@@ -90,21 +89,21 @@ using MLDatasets
 using CategoricalArrays
 
 ## Load data
-train_imgs = MNIST.images(:train)   # size(train_imgs) -> (60000,)
-test_imgs  = MNIST.images(:test)    # size(test_imgs) -> (10000,)
-
+train_x, train_y = MNIST.traindata()
+test_x,  test_y  = MNIST.testdata()
+train_x = reshape(train_x,(28*28, 60_000))
+test_x = reshape(test_x,(28*28, 10_000))        
+   
 ## Prepare data
-train_x    = Float32.(hcat(reshape.(train_imgs, :)...)) # size(train_x) -> (784, 60000)
-test_x     = Float32.(hcat(reshape.(test_imgs, :)...)) # size(test_x)   -> (784, 60000)
-train_y    = MNIST.labels(:train) .+ 1;
-test_y     = MNIST.labels(:test)  .+ 1;
+train_y = Int.(train_y .+ 1);
+test_y  = Int.(test_y .+ 1);
 
 ## Encode targets as CategoricalArray objects
 train_y = CategoricalArray(train_y)
 test_y  = CategoricalArray(test_y)
 ```
 
-We can create a `MulticlassPerceptronClassifer` as follows :
+We can create a `MulticlassPerceptronClassifer` as follows:
 
 ```julia
 using MulticlassPerceptron
