@@ -74,6 +74,7 @@ function predict_with_placeholder(h::MulticlassPerceptronCore,
 
     #@fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
     class_placeholder .= mul!(class_placeholder, transpose(h.W), x)  .+ h.b
+    
     return argmax(class_placeholder)
 end
 
@@ -212,21 +213,21 @@ function fit!(h::MulticlassPerceptronCore,
         @inbounds for m in data_indices
             x     = view(X, :, m);
             y_hat = predict_with_placeholder(h, x, class_placeholder)
-
-            if y[m] != y_hat
+            y_m = y[m]
+            if y_m  != y_hat
                 n_mistakes += 1
                 ####  wij ← wij − η (yj −tj) · xi
-                h.W[:, y[m]]  .= h.W[:, y[m]]  .+ learning_rate .* x
-                h.b[y[m]]      = h.b[y[m]]      + learning_rate
-                h.W[:, y_hat] .= h.W[:, y_hat] .- learning_rate .* x
+                h.W[:, y_m ]  .= view(h.W,:, y_m )  .+ learning_rate .* x
+                h.b[y_m ]      = h.b[y_m ]      + learning_rate
+                h.W[:, y_hat] .= view(h.W,:, y_hat) .- learning_rate .* x
                 h.b[y_hat]     = h.b[y_hat]     - learning_rate
 
                 if f_average_weights == true
                     counter_learning_rate = counter * learning_rate
-                    W_average[:, y[m]]   .= W_average[:, y[m]]  .+ counter_learning_rate .* x
-                    b_average[y[m]]       = b_average[y[m]]      + counter_learning_rate
-                    W_average[:, y_hat]  .= W_average[:, y_hat] .- counter_learning_rate .* x
-                    b_average[y_hat]      = b_average[y_hat]     - counter_learning_rate
+                    W_average[:, y_m ]   .= view(W_average,:, y_m )  .+ counter_learning_rate .* x
+                    b_average[y_m ]       = b_average[y_m ]           + counter_learning_rate
+                    W_average[:, y_hat]  .= view(W_average,:, y_hat) .- counter_learning_rate .* x
+                    b_average[y_hat]      = b_average[y_hat]          - counter_learning_rate
                 end
             end
             counter +=1
