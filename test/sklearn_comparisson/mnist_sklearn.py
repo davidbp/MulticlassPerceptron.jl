@@ -13,6 +13,7 @@ home = expanduser("~")
 mnist_path = os.path.join(home, "Datasets","MNIST")
 [x for x in os.listdir(mnist_path) if x[0] !="." ]
 
+# Data can be downloaded from  http://yann.lecun.com/exdb/mnist/
 train_path = os.path.join(mnist_path,'train-images-idx3-ubyte')
 test_path  = os.path.join(mnist_path,'t10k-images-idx3-ubyte')
 train_y_path = os.path.join(mnist_path,'train-labels-idx1-ubyte')
